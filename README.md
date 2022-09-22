@@ -1,2 +1,1 @@
-# you-are-in-a-hallway
-Recreation and evolution of a TI-86 program
+https://implodingduck.github.io/you-are-in-a-hallway
