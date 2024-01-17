@@ -9,7 +9,7 @@
     "build": "vite build --base=/you-are-in-a-hallway",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "deploy": "gh-pages -d dist -e xmas23",
+    "deploy": "gh-pages -d dist",
     "help": "gh-pages --help"
   },
   "dependencies": {
