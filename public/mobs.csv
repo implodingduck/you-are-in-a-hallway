@@ -1,2 +1,8 @@
 id,name,type,hp,mp,power,defense,accuracy,magic,evasion,luck,level
-1,Goblin,goblin,40,10,45,17,68,29,45,10,1
+1,Goblin,goblin,40,0,45,17,68,0,45,10,1
+2,Booma,forest,60,0,80,0,60,0,60,8,1
+3,Gobooma,forest,85,0,85,5,65,0,68,8,1
+4,Gigobooma,foreset,110,0,90,30,75,0,75,5,1
+5,Wolf,wolf,45,0,85,20,90,0,60,8,1
+6,Bigger Wolf,wolf,65,0,95,25,90,0,65,10,1
+7,Chicken,bird,30,0,65,10,70,0,80,10,1
