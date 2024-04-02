@@ -3,6 +3,7 @@ import React, {Component, useState, useEffect} from 'react';
 import { API } from './Api'
 import Mob from './Mob.jsx'
 import Player from './Player.jsx'
+import DragDropGrid from './DragDropGrid.jsx';
 
 function App() {
   const api = new API();
@@ -38,6 +39,9 @@ function App() {
         </pre>
         <Player player={player} onAttack={handleAttack} />
         <Mob mob={mob} />
+
+        <DragDropGrid />
+
     </div>
   );
 }

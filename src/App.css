@@ -48,3 +48,7 @@
 .hidden {
   display: none;
 }
+
+.react-grid-item {
+  border: 1px solid #ff00ff;
+}
