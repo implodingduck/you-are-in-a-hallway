@@ -1,7 +1,10 @@
 import './GridPlayer.css';
 import React, {Component, useState, useEffect} from 'react';
+import {useDraggable} from '@dnd-kit/core';
+import {CSS} from '@dnd-kit/utilities';
+import GridDraggable from './GridDraggable';
 
-export default function GridPlayer({x, y}) {
+export default function GridPlayer(props) {
 
     const [screenX, setScreenX] = useState("")
     const [screenY, setScreenY] = useState("")
@@ -23,5 +26,5 @@ export default function GridPlayer({x, y}) {
         
     }
 
-    return (<div className='gridplayer' style={{ left: screenX, top: screenY}} draggable="true" onDragStart={handleDragStart} onDragEnd={handleDragEnd}>P</div>);
+    return (<GridDraggable className="draggable"><div id={props.id} className='gridplayer'>P</div></GridDraggable>);
 }

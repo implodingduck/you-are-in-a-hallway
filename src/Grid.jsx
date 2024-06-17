@@ -2,6 +2,7 @@ import './Grid.css';
 import GridPlayer from './GridPlayer';
 import GridTile from './GridTile';
 
+
 export default function Grid() {
 
     const squares = [
@@ -20,19 +21,19 @@ export default function Grid() {
     return (
         <div>
             <h2>Grid</h2>
+            
             <div className="gridcontainer">
             {
                 squares.map((val, index) => {
                     return (
                         //<>{
                             val.map( (v, i) => {
-                                return (<GridTile key={index + i} x={index} y={i} content={v} />)
+                                return (<GridTile id={`tile${index}${i}`} key={index + i} x={index} y={i} content={v} />)
                             })
                         //}</>
                     )
                 })
             }
-            
             </div>
         </div>
     );

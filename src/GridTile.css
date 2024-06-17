@@ -1,7 +1,14 @@
-.tile00, .tile01, .tile10, .tile11 {
+.gridtile {
     display: flex;
     justify-content: center;
+    /* align-items: center; */
+}
+
+.tile00, .tile01, .tile10, .tile11 {
     align-items: center;
+    display: flex;
+    justify-content: center;
+    width: 100%;
 }
 
 .tile11, .tile00 {
@@ -14,3 +21,4 @@
 div.green {
     background-color: green;
 }
+
