@@ -4,6 +4,7 @@ import { API } from './Api'
 import Mob from './Mob.jsx'
 import Player from './Player.jsx'
 import DragDropGrid from './DragDropGrid.jsx';
+import GridGame from './GridGame.jsx';
 
 function App() {
   const api = new API();
@@ -42,6 +43,9 @@ function App() {
 
         <DragDropGrid />
 
+        <hr />
+
+        <GridGame />
     </div>
   );
 }

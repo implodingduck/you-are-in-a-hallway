@@ -1,0 +1,11 @@
+.gridplayer {
+    width: 2em;
+    height: 2em;
+    border: 1px solid #ff00ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    background-color: #220022;
+    
+}

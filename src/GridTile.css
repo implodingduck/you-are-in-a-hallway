@@ -1,0 +1,16 @@
+.tile00, .tile01, .tile10, .tile11 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.tile11, .tile00 {
+    background-color: #333;
+}
+.tile10, .tile01 {
+    background-color: #555;
+}
+
+div.green {
+    background-color: green;
+}
