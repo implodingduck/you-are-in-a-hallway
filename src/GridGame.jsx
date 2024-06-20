@@ -2,10 +2,21 @@ import './GridGame.css'
 import Grid from './Grid.jsx';
 import GridPlayer from './GridPlayer.jsx'
 import GridToken from './GridToken.jsx'
-import {DndContext} from '@dnd-kit/core';
+import {DndContext, 
+    KeyboardSensor,
+    PointerSensor,
+    TouchSensor,
+    useSensor,
+    useSensors,} from '@dnd-kit/core';
 import React, {Component, useState, useEffect} from 'react';
 
 export default function GridGame(){
+
+    const sensors = useSensors(
+        useSensor(TouchSensor),
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor)
+    )
   
     const tokenlib = {
         player: <GridPlayer id="theplayer" />,
@@ -45,7 +56,7 @@ export default function GridGame(){
     }
     
     return (<>
-        <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} >
+        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} >
             <Grid tokens={tokens} />
                         
         </DndContext>
