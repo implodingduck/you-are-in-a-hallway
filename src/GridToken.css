@@ -1,0 +1,10 @@
+.enemy {
+    width: 2em;
+    height: 2em;
+    border: 1px solid #ff0000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #330000;
+    
+}

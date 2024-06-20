@@ -27,3 +27,13 @@
 }*/
 
 
+
+.gridcontainer.tokens {
+    position: relative;
+    top: -100%;
+}
+
+.gridcontainer.tokens .tile00, .gridcontainer.tokens .tile01, .gridcontainer.tokens .tile10, .gridcontainer.tokens .tile11 {
+    background-color: transparent;
+    border: 1px solid #ff00ff;
+}

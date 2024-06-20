@@ -1,9 +1,10 @@
 import './Grid.css';
+import GridLayer from './GridLayer';
 import GridPlayer from './GridPlayer';
 import GridTile from './GridTile';
 
 
-export default function Grid() {
+export default function Grid(props) {
 
     const squares = [
         ["8a","8b", "8c", "8d", "8e", "8f", "8g", "8h"],
@@ -17,23 +18,12 @@ export default function Grid() {
     ]
 
 
-
     return (
         <div>
             <h2>Grid</h2>
-            
-            <div className="gridcontainer">
-            {
-                squares.map((val, index) => {
-                    return (
-                        //<>{
-                            val.map( (v, i) => {
-                                return (<GridTile id={`tile${index}${i}`} key={index + i} x={index} y={i} content={v} />)
-                            })
-                        //}</>
-                    )
-                })
-            }
+            <div className={`gridcontainer`}>
+                <GridLayer layerName={"background"} squares={squares} z={0}></GridLayer>
+                <GridLayer layerName={"tokens"} squares={props.tokens} droppable={true} z={1}></GridLayer>
             </div>
         </div>
     );

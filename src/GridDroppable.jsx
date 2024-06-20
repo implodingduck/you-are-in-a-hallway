@@ -4,6 +4,11 @@ import {useDroppable} from '@dnd-kit/core';
 export default function GridDroppable(props) {
   const {isOver, setNodeRef} = useDroppable({
     id: props.id,
+    disabled: props.disabled,
+    data: {
+      x: props.x,
+      y: props.y
+    }
   });
   const style = {
     backgroundColor: isOver ? '#00ff00' : undefined,
@@ -14,7 +19,7 @@ export default function GridDroppable(props) {
   
   
   return (
-    <div ref={setNodeRef} style={style} className={props.className}>
+    <div id={props.id} ref={setNodeRef} style={style} className={props.className}>
       {props.children}
     </div>
   );

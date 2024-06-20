@@ -11,12 +11,17 @@
     width: 100%;
 }
 
-.tile11, .tile00 {
+.background .tile11, .background .tile00 {
     background-color: #333;
 }
-.tile10, .tile01 {
+.background .tile10, .background .tile01 {
     background-color: #555;
 }
+
+.tokens .tile11, .tokens .tile00, .tokens .tile10, .tokens .tile01 {
+  border: 1px solid #ff00ff;
+}
+
 
 div.green {
     background-color: green;
