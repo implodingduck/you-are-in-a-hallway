@@ -5,6 +5,7 @@ import GridToken from './GridToken.jsx'
 import {DndContext, 
     KeyboardSensor,
     PointerSensor,
+    MouseSensor,
     TouchSensor,
     useSensor,
     useSensors,} from '@dnd-kit/core';
@@ -15,7 +16,7 @@ export default function GridGame(){
 
     const sensors = useSensors(
         useSensor(TouchSensor),
-        useSensor(PointerSensor),
+        useSensor(MouseSensor),
         useSensor(KeyboardSensor)
     )
   
