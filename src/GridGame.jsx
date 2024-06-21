@@ -9,6 +9,7 @@ import {DndContext,
     useSensor,
     useSensors,} from '@dnd-kit/core';
 import React, {Component, useState, useEffect} from 'react';
+import GridDroppable from './GridDroppable.jsx';
 
 export default function GridGame(){
 
@@ -20,7 +21,8 @@ export default function GridGame(){
   
     const tokenlib = {
         player: <GridPlayer id="theplayer" />,
-        goblin: <GridToken id="goblin" className={"enemy"}>G</GridToken> 
+        goblin: <GridToken id="goblin" className={"enemy"}>G</GridToken>,
+        booma: <GridToken id="booma" className={"enemy"}>B</GridToken> 
     }
 
     const [tokens, setTokens] = useState([
@@ -57,6 +59,12 @@ export default function GridGame(){
     
     return (<>
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} >
+            { tokenlib.booma }
+            <hr />
+            <GridDroppable id={"touchtest"} disabled={false}>
+                <div style={{ border: '1px solid #ff00ff', height: '5em', width: '5em' }}></div>
+            </GridDroppable>
+            
             <Grid tokens={tokens} />
                         
         </DndContext>
