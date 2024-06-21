@@ -1,6 +1,6 @@
 import React from 'react';
 import {useDraggable} from '@dnd-kit/core';
-import 'GridDraggable.css'
+import './GridDraggable.css'
 
 export default function GridDraggable(props) {
     const {attributes, listeners, setNodeRef, transform} = useDraggable({
