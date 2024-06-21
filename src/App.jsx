@@ -41,7 +41,7 @@ function App() {
         <Player player={player} onAttack={handleAttack} />
         <Mob mob={mob} />
 
-        <DragDropGrid />
+        {/* <DragDropGrid /> */}
 
         <hr />
 

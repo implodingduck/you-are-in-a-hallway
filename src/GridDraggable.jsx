@@ -1,5 +1,6 @@
 import React from 'react';
 import {useDraggable} from '@dnd-kit/core';
+import 'GridDraggable.css'
 
 export default function GridDraggable(props) {
     const {attributes, listeners, setNodeRef, transform} = useDraggable({
@@ -15,7 +16,7 @@ export default function GridDraggable(props) {
     
       
     return (
-        <div id={props.id} ref={setNodeRef} style={style} {...listeners} {...attributes}>
+        <div id={props.id} className={'draggable'} ref={setNodeRef} style={style} {...listeners} {...attributes}>
           {props.children}
         </div>
     );
