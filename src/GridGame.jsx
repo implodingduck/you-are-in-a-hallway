@@ -20,12 +20,14 @@ export default function GridGame(){
         useSensor(KeyboardSensor)
     )
   
-    const tokenlib = {
+
+    const [tokenlib, setTokenlib ] = useState({
         player: <GridPlayer id="theplayer" />,
         goblin: <GridToken id="goblin" className={"enemy"}>G</GridToken>,
         booma: <GridToken id="booma" className={"enemy"}>B</GridToken> 
-    }
+    })
 
+    console.log(tokenlib.booma)
     const [tokens, setTokens] = useState([
         [tokenlib.player, <></>, <></>, <></>, <></>, <></>, <></>, <></>],
         [<></>, <></>, <></>, <></>, <></>, <></>, <></>, <></>],
@@ -38,34 +40,36 @@ export default function GridGame(){
     ])
     
     function handleDragEnd({active, over}) {
-        //setParent(over ? over.id : null);
-        // console.log(active)
-        // console.log(active.id)
-        // console.log(over)
-        // console.log(over.id)
+
         const newArr = tokens.slice(0);
-        //console.log("------------")
-        console.log(newArr[over.data.current.x][over.data.current.y].type)
         if(newArr[over.data.current.x][over.data.current.y].type === React.Fragment){
-            newArr[over.data.current.x][over.data.current.y] = tokens[active.data.current.x][active.data.current.y]
-            newArr[active.data.current.x][active.data.current.y] = <></>
+            console.log(`x=${active.data.current.x} y=${active.data.current.y}`)
+            if(active.data.current.x < 0 && active.data.current.y < 0){
+                newArr[over.data.current.x][over.data.current.y] = tokenlib[active.id.replace("draggable", "")]
+                setTokenlib({...tokenlib, booma: <GridToken id="booma" className={"enemy"} ongrid={true}></GridToken> })
+            } else {
+                newArr[over.data.current.x][over.data.current.y] = tokens[active.data.current.x][active.data.current.y]
+                newArr[active.data.current.x][active.data.current.y] = <></>
+            }
         }
         
         setTokens(newArr)
     }
 
     function handleDragStart(e){
-        console.log(e)
+        // console.log(e)
+        
     }
     
     return (<>
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} >
-            { tokenlib.booma }
-            <hr />
-            <GridDroppable id={"touchtest"} disabled={false}>
-                <div style={{ border: '1px solid #ff00ff', height: '5em', width: '5em' }}></div>
-            </GridDroppable>
-            
+            <div style={{marginLeft: '5em'}}>
+                <h3>Token Holder</h3>
+                {
+                   (tokenlib.booma.props.ongrid) ? null : tokenlib.booma
+                }
+            </div>
+
             <Grid tokens={tokens} />
                         
         </DndContext>

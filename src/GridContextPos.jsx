@@ -1,3 +1,3 @@
 import { createContext } from 'react';
 
-export const GridContextPos = createContext([0,0]);
+export const GridContextPos = createContext([-1,-1]);
