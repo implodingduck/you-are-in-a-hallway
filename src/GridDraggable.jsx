@@ -6,13 +6,19 @@ export default function GridDraggable(props) {
     const {attributes, listeners, setNodeRef, transform} = useDraggable({
         id: props.id,
         data: {
+            id: props.id.replace("draggable", ""),
             x: props.x,
             y: props.y
         }
     });
     const style = transform ? {
+        gridRow: props.x+1,
+        gridColumn: props.y+1,
         transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-    } : undefined;
+    } : {
+        gridRow: props.x+1,
+        gridColumn: props.y+1
+    };
     
       
     return (

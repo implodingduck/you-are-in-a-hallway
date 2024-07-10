@@ -11,6 +11,7 @@ import {DndContext,
     useSensors,} from '@dnd-kit/core';
 import React, {Component, useState, useEffect} from 'react';
 import GridDroppable from './GridDroppable.jsx';
+import { act } from 'react';
 
 export default function GridGame(){
 
@@ -27,33 +28,65 @@ export default function GridGame(){
         booma: <GridToken id="booma" className={"enemy"}>B</GridToken> 
     })
 
-    console.log(tokenlib.booma)
     const [tokens, setTokens] = useState([
-        [tokenlib.player, <></>, <></>, <></>, <></>, <></>, <></>, <></>],
-        [<></>, <></>, <></>, <></>, <></>, <></>, <></>, <></>],
-        [<></>, <></>, <></>, <></>, <></>, <></>, <></>, <></>],
-        [<></>, <></>, <></>, tokenlib.goblin, <></>, <></>, <></>, <></>],
-        [<></>, <></>, <></>, <></>, <></>, <></>, <></>, <></>],
-        [<></>, <></>, <></>, <></>, <></>, <></>, <></>, <></>],
-        [<></>, <></>, <></>, <></>, <></>, <></>, <></>, <></>],
-        [<></>, <></>, <></>, <></>, <></>, <></>, <></>, <></>], 
+        {
+            id: "theplayer",
+            x: 0,
+            y: 0,
+            className: 'gridplayer',
+            content: 'P'
+        },
+        {
+            id: "goblin",
+            x: 0,
+            y: 1,
+            className: 'enemy',
+            content: 'G'
+        },
+        {
+            id: "boooma",
+            x: 2,
+            y: 2,
+            className: 'enemy',
+            content: 'B'
+        }
     ])
-    
-    function handleDragEnd({active, over}) {
 
-        const newArr = tokens.slice(0);
-        if(newArr[over.data.current.x][over.data.current.y].type === React.Fragment){
-            console.log(`x=${active.data.current.x} y=${active.data.current.y}`)
-            if(active.data.current.x < 0 && active.data.current.y < 0){
-                newArr[over.data.current.x][over.data.current.y] = tokenlib[active.id.replace("draggable", "")]
-                setTokenlib({...tokenlib, booma: <GridToken id="booma" className={"enemy"} ongrid={true}></GridToken> })
-            } else {
-                newArr[over.data.current.x][over.data.current.y] = tokens[active.data.current.x][active.data.current.y]
-                newArr[active.data.current.x][active.data.current.y] = <></>
+    function validateNoOverlap(t, tarr){
+        for(let t2 of tarr){
+            if(isOverlap(t, t2)){
+                return false
             }
         }
-        
-        setTokens(newArr)
+        return true;
+    }
+
+    function isOverlap(t1, t2){
+        return t1.x == t2.x && t1.y == t2.y && t1.id != t2.id
+    }
+    
+    function handleDragEnd({active, over}) {
+        console.log('handleDragEnd')
+        console.log(active)
+        console.log(over)
+        const newtokens = tokens.map(token => {
+            if(token.id == active.data.current.id ){
+                // token.x = over.data.current.x
+                // token.y = over.data.current.y
+                console.log(token)
+                const newt = {
+                    ...token,
+                    x: over.data.current.x,
+                    y: over.data.current.y
+                };
+                if(validateNoOverlap(newt, tokens)){
+                    return newt
+                }
+                
+            }
+            return token;    
+        })
+        setTokens(newtokens)
     }
 
     function handleDragStart(e){
@@ -63,14 +96,14 @@ export default function GridGame(){
     
     return (<>
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} >
-            <div style={{marginLeft: '5em'}}>
-                <h3>Token Holder</h3>
-                {
-                   (tokenlib.booma.props.ongrid) ? null : tokenlib.booma
-                }
-            </div>
-
-            <Grid tokens={tokens} />
+            <Grid>
+            { 
+                tokens.map( (val, index) => {
+                    return (<GridToken key={index} id={val.id} className={val.className} x={val.x} y={val.y}>{val.content}</GridToken>)
+                }) 
+            }
+            </Grid>
+            
                         
         </DndContext>
     </>)

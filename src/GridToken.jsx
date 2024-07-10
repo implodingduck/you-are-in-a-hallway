@@ -8,7 +8,5 @@ import { GridContextPos } from './GridContextPos';
 
 export default function GridToken(props) {
 
-    const pos = useContext(GridContextPos);
-
-    return (<GridDraggable id={`draggable${props.id}`} className="draggable" x={pos[0]} y={pos[1]}><div id={props.id} className={props.className}>{props.children}</div></GridDraggable>);
+    return (<GridDraggable id={`draggable${props.id}`} className="draggable" x={props.x} y={props.y}><div id={props.id} className={props.className}>{props.children}</div></GridDraggable>);
 }
