@@ -22,8 +22,8 @@ export default function Grid(props) {
         <div>
             <h2>Grid</h2>
             <div className={`gridcontainer`}>
-                <GridLayer layerName={"background"} squares={squares} z={0}></GridLayer>
-                <GridLayer layerName={"tokens"} squares={props.tokens} droppable={true} z={1}></GridLayer>
+                <GridLayer layerName={"background"} squares={squares} z={0} droppable={true}></GridLayer>
+                { props.children }
             </div>
         </div>
     );
