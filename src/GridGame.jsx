@@ -22,11 +22,18 @@ export default function GridGame(){
     )
   
 
-    const [tokenlib, setTokenlib ] = useState({
-        player: <GridPlayer id="theplayer" />,
-        goblin: <GridToken id="goblin" className={"enemy"}>G</GridToken>,
-        booma: <GridToken id="booma" className={"enemy"}>B</GridToken> 
-    })
+    const [tokenlib, setTokenlib ] = useState([
+        {
+            id: "goblin",
+            className: 'enemy',
+            content: 'G'
+        },
+        {
+            id: "boooma",
+            className: 'enemy',
+            content: 'B'
+        }
+    ])
 
     const [tokens, setTokens] = useState([
         {
@@ -35,21 +42,8 @@ export default function GridGame(){
             y: 0,
             className: 'gridplayer',
             content: 'P'
-        },
-        {
-            id: "goblin",
-            x: 0,
-            y: 1,
-            className: 'enemy',
-            content: 'G'
-        },
-        {
-            id: "boooma",
-            x: 2,
-            y: 2,
-            className: 'enemy',
-            content: 'B'
         }
+        
     ])
 
     function validateNoOverlap(t, tarr){
@@ -69,6 +63,27 @@ export default function GridGame(){
         console.log('handleDragEnd')
         console.log(active)
         console.log(over)
+        const fromtokenlib = tokenlib.filter(token => {
+            const newtlib = {
+                ...token,
+                x: over.data.current.x,
+                y: over.data.current.y   
+            }
+            return token.id == active.data.current.id && validateNoOverlap(newtlib, tokens)
+        })
+        for(let t of fromtokenlib){
+            t.x = over.data.current.x
+            t.y = over.data.current.y
+        }
+
+        const newtokenlib = tokenlib.filter(token => {
+            let retval = false;
+            for(let t of fromtokenlib){
+                retval = (token.id == t.id)
+            }
+            return !retval;
+        })
+        
         const newtokens = tokens.map(token => {
             if(token.id == active.data.current.id ){
                 // token.x = over.data.current.x
@@ -86,7 +101,8 @@ export default function GridGame(){
             }
             return token;    
         })
-        setTokens(newtokens)
+        setTokens([...newtokens, ...fromtokenlib])
+        setTokenlib(newtokenlib)
     }
 
     function handleDragStart(e){
@@ -96,6 +112,13 @@ export default function GridGame(){
     
     return (<>
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} >
+            <div className='tokenlib'>
+                {
+                    tokenlib.map( (val, index) => {
+                        return <GridToken key={index} id={val.id} className={val.className}>{val.content}</GridToken>
+                    })
+                }
+            </div>
             <Grid>
             { 
                 tokens.map( (val, index) => {

@@ -12,12 +12,12 @@ export default function GridDraggable(props) {
         }
     });
     const style = transform ? {
-        gridRow: props.x+1,
-        gridColumn: props.y+1,
+        gridRow: (props.x > -1) ? props.x+1 : null,
+        gridColumn: (props.y > -1) ? props.y+1: null,
         transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
     } : {
-        gridRow: props.x+1,
-        gridColumn: props.y+1
+        gridRow: (props.x > -1) ? props.x+1 : null,
+        gridColumn: (props.y > -1) ? props.y+1: null,
     };
     
       
