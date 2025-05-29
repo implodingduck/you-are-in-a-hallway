@@ -1,0 +1,17 @@
+.battleStyle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.logStyle  {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #646cff;
+    border-radius: 4px;
+    max-height: 150px;
+    overflow-y: auto;
+}
