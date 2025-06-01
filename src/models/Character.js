@@ -2,10 +2,14 @@ export class Character {
     constructor(name, stats, position, side, powers = []) {
         this.name = name;
         this.stats = stats;
+        if (this.stats.maxHp === undefined) {
+            this.stats.maxHp = this.stats.hp; // Default max HP if not provided
+        }
         this.position = position;
         this.side = side;
         this.tick = 1;
         this.powers = powers; // Array of Power objects
+        this.targetable = false; // Whether this character can be targeted
     }
 
     setTick(tick) {
