@@ -1,0 +1,36 @@
+.gridStyle {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    width: 200px;
+    margin: 10px'
+
+}
+
+.cellStyle {
+    border: 1px solid #646cff;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background: #1a1a1a'
+
+}
+
+.characterStyle {
+    width: 90%;
+    height: 90%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #2a2a2a;
+    transition: background-color 0.3s;
+    cursor: pointer'
+
+}
+
+.characterStyle.active {
+    background: #646cff;
+}
