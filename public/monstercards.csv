@@ -1,0 +1,6 @@
+name,type,description,health,attack,ability,tags
+Small Slime,Monster,a little blob of cuteness,50,10,,"[""slime"", ""minion""]"
+Gelatinous Monster,Monster,devours everything in its path and grows larger,50,30,multislime,"[""slime"",""big""]"
+Goblin Minion,Monster,Its a goblin,60,20,,"[""goblin"",""minion""]"
+Goblin Shaman,Monster,Its a goblin with magic... sometimes it works,70,30,coinflip|2|20,"[""goblin"",""chaos""]"
+Goblin Demolitionist,Monster,Its a goblin with bombs,60,20,kaboom,"[""goblin"",""explosive""]"
