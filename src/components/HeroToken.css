@@ -1,0 +1,101 @@
+.hero {
+    width: 40px;
+    height: 40px;
+    background-color: #4CAF50;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    position: relative;
+}
+
+.hero::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border: 8px solid transparent;
+}
+
+.hero-up::after {
+    border-bottom-color: white;
+    top: -4px;
+}
+
+.hero-right::after {
+    border-left-color: white;
+    right: -4px;
+}
+
+.hero-down::after {
+    border-top-color: white;
+    bottom: -4px;
+}
+
+.hero-left::after {
+    border-right-color: white;
+    left: -4px;
+}
+
+.hero-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hero-controls {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.direction-btn {
+    color: #666;
+    position: absolute;
+    width: 2.5em;
+    height: 2.5em;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid #666;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s;
+    z-index: 100;
+}
+
+.direction-btn:hover {
+    background: rgb(122, 122, 122);
+}
+
+.direction-btn.up {
+    top: -3em;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.direction-btn.right {
+    right: -3em;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.direction-btn.down {
+    bottom: -3em;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.direction-btn.left {
+    left: -3em;
+    top: 50%;
+    transform: translateY(-50%);
+}

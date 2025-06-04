@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './Game.css';
 
+import HeroToken from './HeroToken.jsx';
+
 const GRID_SIZE = 10;
 const DIRECTIONS = {
     UP: { x: 0, y: -1 },
@@ -9,13 +11,73 @@ const DIRECTIONS = {
     LEFT: { x: -1, y: 0 }
 };
 
+/** @enum {string} */
+const PHASES = Object.freeze({
+    HERO_MOVE: 'HERO_MOVE',
+    HERO_ACTION: 'HERO_ACTION',
+    ENEMY_MOVE: 'ENEMY_MOVE',
+    ENEMY_SPAWN: 'ENEMY_SPAWN',
+    ENEMY_ACTION: 'ENEMY_ACTION'
+});
+
+// Array to define phase order
+const PHASE_ORDER = Object.freeze([
+    PHASES.HERO_MOVE,
+    PHASES.HERO_ACTION,
+    PHASES.ENEMY_MOVE,
+    PHASES.ENEMY_SPAWN,
+    PHASES.ENEMY_ACTION
+]);
+
 export default function Game() {
     const [grid, setGrid] = useState([]);
     const [hero, setHero] = useState({ x: 5, y: 5, direction: 'RIGHT' });
     const [enemies, setEnemies] = useState([]);
     const [score, setScore] = useState(0);
     const [bullets, setBullets] = useState([]);
+    const [phase, setPhase] = useState(PHASES.HERO_MOVE);
 
+    const nextPhase = useCallback(() => {
+        setPhase(currentPhase => {
+            const currentIndex = PHASE_ORDER.indexOf(currentPhase);
+            const nextIndex = (currentIndex + 1) % PHASE_ORDER.length;
+            return PHASE_ORDER[nextIndex];
+        });
+    }, []);
+
+    // handle phase changes
+    useEffect(() => {
+        console.log(`Current phase: ${phase}`);
+        switch (phase) {
+            case PHASES.HERO_MOVE:
+                break;
+            case PHASES.HERO_ACTION:
+                shoot();
+                break;
+            case PHASES.ENEMY_MOVE:
+                moveEnemies();
+                nextPhase();
+                break;
+            case PHASES.ENEMY_SPAWN:
+                spawnEnemy();
+                nextPhase();
+                break;
+            case PHASES.ENEMY_ACTION:
+                nextPhase();
+                break;
+            default:
+                console.warn(`Unknown phase: ${phase}`);
+                break;
+
+        }
+    },[phase])
+
+    const handleOnMove = (direction) => {
+        if (phase === PHASES.HERO_MOVE) {
+            moveHero(direction);
+            nextPhase();
+        }
+    };
 
     // Handle hero movement
     const moveHero = useCallback((direction) => {
@@ -187,24 +249,16 @@ export default function Game() {
     const handleKeyPress = useCallback((e) => {
         switch (e.key) {
             case 'ArrowUp':
-                moveHero('UP');
-                moveEnemies();
-                spawnEnemy();
+                handleOnMove('UP');
                 break;
             case 'ArrowRight':
-                moveHero('RIGHT');
-                moveEnemies();
-                spawnEnemy();
+                handleOnMove('RIGHT');
                 break;
             case 'ArrowDown':
-                moveHero('DOWN');
-                moveEnemies();
-                spawnEnemy();
+                handleOnMove('DOWN');
                 break;
             case 'ArrowLeft':
-                moveHero('LEFT');
-                moveEnemies();
-                spawnEnemy();
+                handleOnMove('LEFT');
                 break;
             case ' ':
                 shoot();
@@ -212,7 +266,7 @@ export default function Game() {
             default:
                 break;
         }
-    }, [moveHero, spawnEnemy, moveEnemies]); // Add moveHero as a dependency
+    }, [moveHero, phase]); // Add moveHero as a dependency
 
     // Initialize grid and set up event listeners
     useEffect(() => {
@@ -235,6 +289,7 @@ export default function Game() {
         if (startX >= 0 && startX < GRID_SIZE && startY >= 0 && startY < GRID_SIZE) {
             setBullets(prev => [...prev, { x: startX, y: startY, dx: dir.x, dy: dir.y }]);
         }
+        nextPhase();
     };
 
     // Update bullets and check collisions
@@ -283,6 +338,8 @@ export default function Game() {
             <div className="game-info">
                 <h2>Score: {score}</h2>
                 <p>{enemies.length}</p>
+                <p>Phase: {phase}</p>
+                <button onClick={shoot}>Shoot</button>
             </div>
             <div className="game-grid">
                 {grid.map((row, y) => (
@@ -294,7 +351,9 @@ export default function Game() {
 
                             return (
                                 <div key={`${x}-${y}`} className="grid-cell">
-                                    {isHero && <div className={`hero hero-${hero.direction.toLowerCase()}`} title={JSON.stringify(hero)}>H</div>}
+                                    {isHero && <HeroToken hero={hero} phase={phase} onMove={(direction) => {
+                                        handleOnMove(direction);
+                                    }} />}
                                     {isEnemy && <div className="enemy">E</div>}
                                     {isBullet && <div className="bullet">•</div>}
                                 </div>

@@ -28,46 +28,7 @@
     position: relative;
 }
 
-.hero {
-    width: 40px;
-    height: 40px;
-    background-color: #4CAF50;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
-    position: relative;
-}
 
-.hero::after {
-    content: '';
-    position: absolute;
-    width: 0;
-    height: 0;
-    border: 8px solid transparent;
-}
-
-.hero-up::after {
-    border-bottom-color: white;
-    top: -4px;
-}
-
-.hero-right::after {
-    border-left-color: white;
-    right: -4px;
-}
-
-.hero-down::after {
-    border-top-color: white;
-    bottom: -4px;
-}
-
-.hero-left::after {
-    border-right-color: white;
-    left: -4px;
-}
 
 .enemy {
     width: 35px;
