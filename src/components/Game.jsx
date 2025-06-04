@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './Game.css';
 
 import HeroToken from './HeroToken.jsx';
+import { use } from 'react';
 
 const GRID_SIZE = 10;
 const DIRECTIONS = {
@@ -52,7 +53,7 @@ export default function Game() {
             case PHASES.HERO_MOVE:
                 break;
             case PHASES.HERO_ACTION:
-                shoot();
+                //shoot();
                 break;
             case PHASES.ENEMY_MOVE:
                 moveEnemies();
@@ -73,19 +74,26 @@ export default function Game() {
     },[phase])
 
     const handleOnMove = (direction) => {
-        if (phase === PHASES.HERO_MOVE) {
-            moveHero(direction);
-            nextPhase();
-        }
+        if (phase !== PHASES.HERO_MOVE) return;
+        moveHero(direction);    
+    };
+
+    const handleOnAim = (direction) => {
+        if (phase !== PHASES.HERO_ACTION) return; // Only aim during HERO_ACTION phase
+        setHero(prev => ({
+            ...prev,
+            direction: direction
+        }));
     };
 
     // Handle hero movement
     const moveHero = useCallback((direction) => {
+        if (phase !== PHASES.HERO_MOVE) return; // Only move during HERO_MOVE phase
         setHero(prev => {
             const newPos = {
                 x: prev.x + DIRECTIONS[direction].x,
                 y: prev.y + DIRECTIONS[direction].y,
-                direction
+                direction: prev.direction
             };
 
             // Check if position is within grid bounds and not occupied by an enemy
@@ -94,9 +102,11 @@ export default function Game() {
                 !enemies.some(enemy => enemy.x === newPos.x && enemy.y === newPos.y)) {
                 return newPos;
             }
-            return { ...prev, direction }; // Only update direction if we can't move
+            //return { ...prev, direction }; // Only update direction if we can't move
+            return { ...prev }
         });
-    }, [hero, enemies]); // Add enemies as a dependency
+        nextPhase();
+    }, [hero, enemies, phase]); // Add enemies as a dependency
 
 
     // Move enemies towards hero
@@ -250,15 +260,19 @@ export default function Game() {
         switch (e.key) {
             case 'ArrowUp':
                 handleOnMove('UP');
+                handleOnAim('UP');
                 break;
             case 'ArrowRight':
                 handleOnMove('RIGHT');
+                handleOnAim('RIGHT');
                 break;
             case 'ArrowDown':
                 handleOnMove('DOWN');
+                handleOnAim('DOWN');
                 break;
             case 'ArrowLeft':
                 handleOnMove('LEFT');
+                handleOnAim('LEFT');
                 break;
             case ' ':
                 shoot();
@@ -281,6 +295,7 @@ export default function Game() {
 
     // Handle shooting
     const shoot = () => {
+        if (phase !== PHASES.HERO_ACTION) return; // Only shoot during HERO_ACTION phase
         const dir = DIRECTIONS[hero.direction];
         const startX = hero.x + dir.x;
         const startY = hero.y + dir.y;
@@ -289,12 +304,23 @@ export default function Game() {
         if (startX >= 0 && startX < GRID_SIZE && startY >= 0 && startY < GRID_SIZE) {
             setBullets(prev => [...prev, { x: startX, y: startY, dx: dir.x, dy: dir.y }]);
         }
-        nextPhase();
+        
     };
+
+    useEffect(() => {
+        console.log(`Bullets: ${JSON.stringify(bullets)}`);
+        // If there are no bullets left, move to the next phase
+        if (bullets.length === 0){
+            if (phase === PHASES.HERO_ACTION) {
+                nextPhase();
+            }
+        }
+    }, [bullets]);
 
     // Update bullets and check collisions
     useEffect(() => {
         const interval = setInterval(() => {
+            if (phase !== PHASES.HERO_ACTION) return; // Only update bullets during HERO_ACTION phase
             setBullets(prev => {
                 const newBullets = prev.map(bullet => ({
                     ...bullet,
