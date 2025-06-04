@@ -1,174 +1,309 @@
-import './Game.css'
-import { useState, useEffect } from 'react'
-import { Dataloader } from '../apis/Dataloader.js'
-import { MonsterCard } from '../models/MonsterCard.js'
-import Card from './Card.jsx';
+import React, { useState, useEffect, useCallback } from 'react';
+import './Game.css';
+
+const GRID_SIZE = 10;
+const DIRECTIONS = {
+    UP: { x: 0, y: -1 },
+    RIGHT: { x: 1, y: 0 },
+    DOWN: { x: 0, y: 1 },
+    LEFT: { x: -1, y: 0 }
+};
 
 export default function Game() {
-    const playerdecklist = ["Small Slime", "Small Slime", "Small Slime", "Gelatinous Monster", "Gelatinous Monster"]
-    const enemydecklist = ["Goblin Minion", "Goblin Shaman", "Goblin Shaman", "Goblin Demolitionist", "Goblin Demolitionist"]
-
-    const [turnNumber, setTurnNumber] = useState(0);
-    const [playerDeck, setPlayerDeck] = useState([]);
-    const [enemyDeck, setEnemyDeck] = useState([]);
-    const [playerActiveCard, setPlayerActiveCard] = useState(null);
-    const [playerActiveQueue, setPlayerActiveQueue] = useState([]);
-    const [enemyActiveCard, setEnemyActiveCard] = useState(null);
-    const [enemyActiveQueue, setEnemyActiveQueue] = useState([]);
+    const [grid, setGrid] = useState([]);
+    const [hero, setHero] = useState({ x: 5, y: 5, direction: 'RIGHT' });
+    const [enemies, setEnemies] = useState([]);
+    const [score, setScore] = useState(0);
+    const [bullets, setBullets] = useState([]);
 
 
-    const dataloader = new Dataloader();
+    // Handle hero movement
+    const moveHero = useCallback((direction) => {
+        setHero(prev => {
+            const newPos = {
+                x: prev.x + DIRECTIONS[direction].x,
+                y: prev.y + DIRECTIONS[direction].y,
+                direction
+            };
 
-    useEffect(() => {
-        void async function init() {
-            await dataloader.init();
-            // Load player and enemy decks from the decklists
-            if (playerDeck.length === 0) {
-                for (let cardname of playerdecklist) {
-                    const monster = dataloader.monsters.find(m => m.name === cardname);
-                    const card = new MonsterCard(
-                        monster.name,
-                        monster.type,
-                        monster.description,
-                        monster.health,
-                        monster.attack,
-                        monster.special,
-                        monster.tags
+            // Check if position is within grid bounds and not occupied by an enemy
+            if (newPos.x >= 0 && newPos.x < GRID_SIZE &&
+                newPos.y >= 0 && newPos.y < GRID_SIZE &&
+                !enemies.some(enemy => enemy.x === newPos.x && enemy.y === newPos.y)) {
+                return newPos;
+            }
+            return { ...prev, direction }; // Only update direction if we can't move
+        });
+    }, [hero, enemies]); // Add enemies as a dependency
+
+
+    // Move enemies towards hero
+    const moveEnemies = useCallback(() => {
+        setEnemies(prev => {
+            // Process enemies one at a time to avoid conflicts
+            const newEnemies = [...prev];
+
+            // Not needed since all enemies move at once.
+            // Shuffle array to randomize which enemies move first
+            // for (let i = newEnemies.length - 1; i > 0; i--) {
+            //     const j = Math.floor(Math.random() * (i + 1));
+            //     [newEnemies[i], newEnemies[j]] = [newEnemies[j], newEnemies[i]];
+            // }
+
+
+
+            // return newEnemies.map(enemy => {
+            //     const dx = Math.sign(hero.x - enemy.x);
+            //     const dy = Math.sign(hero.y - enemy.y);
+
+            //     // Try to move in x or y direction randomly
+            //     const tryX = Math.random() < 0.5;
+            //     let newX = enemy.x;
+            //     let newY = enemy.y;
+
+            //     if (tryX && dx !== 0) {
+            //         newX = enemy.x + dx;
+            //     } else if (dy !== 0) {
+            //         newY = enemy.y + dy;
+            //     }
+
+            //     // Check if new position would collide with other enemies or hero
+            //     const wouldCollide = (newX === hero.x && newY === hero.y) ||
+            //         newEnemies.some(other => 
+            //             other !== enemy && 
+            //             other.x === newX && 
+            //             other.y === newY
+            //         );
+
+            //     // If would collide, try other direction
+            //     if (wouldCollide) {
+            //         newX = enemy.x;
+            //         newY = enemy.y;
+
+            //         if (!tryX && dx !== 0) {
+            //             newX = enemy.x + dx;
+            //         } else if (dy !== 0) {
+            //             newY = enemy.y + dy;
+            //         }
+
+            //         // Check again for collision
+            //         const secondaryCollision = (newX === hero.x && newY === hero.y) ||
+            //             newEnemies.some(other => 
+            //                 other !== enemy && 
+            //                 other.x === newX && 
+            //                 other.y === newY
+            //             );
+
+            //         // If still would collide, stay in place
+            //         if (secondaryCollision) {
+            //             newX = enemy.x;
+            //             newY = enemy.y;
+            //         }
+            //     }
+
+            //     return {
+            //         ...enemy,
+            //         x: newX,
+            //         y: newY
+            //     };
+            // });
+
+
+            for (const enemy of newEnemies) {
+                const dx = Math.sign(hero.x - enemy.x);
+                const dy = Math.sign(hero.y - enemy.y);
+
+                // Try to move in x or y direction randomly
+                const tryX = Math.random() < 0.5;
+                let newX = enemy.x;
+                let newY = enemy.y;
+
+                if (tryX && dx !== 0) {
+                    newX = enemy.x + dx;
+                } else if (dy !== 0) {
+                    newY = enemy.y + dy;
+                }
+                // Check if new position would collide with other enemies or hero
+                const wouldCollide = (newX === hero.x && newY === hero.y) ||
+                    newEnemies.some(other =>
+                        other !== enemy &&
+                        other.x === newX &&
+                        other.y === newY
                     );
-                    if (card) {
-                        setPlayerDeck(prevDeck => [...prevDeck, card]);
-                    } else {
-                        console.warn(`Card not found: ${cardname}`);
+
+                // If would collide, try other direction
+                if (wouldCollide) {
+                    newX = enemy.x;
+                    newY = enemy.y;
+
+                    if (!tryX && dx !== 0) {
+                        newX = enemy.x + dx;
+                    } else if (dy !== 0) {
+                        newY = enemy.y + dy;
+                    }
+
+                    // Check again for collision
+                    const secondaryCollision = (newX === hero.x && newY === hero.y) ||
+                        newEnemies.some(other =>
+                            other !== enemy &&
+                            other.x === newX &&
+                            other.y === newY
+                        );
+
+                    // If still would collide, stay in place
+                    if (secondaryCollision) {
+                        newX = enemy.x;
+                        newY = enemy.y;
                     }
                 }
-            }
+                enemy.x = newX;
+                enemy.y = newY;
 
-            // Load enemy deck from the enemydecklist
-            if (enemyDeck.length === 0) {
-                for (let cardname of enemydecklist) {
-                    const monster = dataloader.monsters.find(m => m.name === cardname);
-                    const card = new MonsterCard(
-                        monster.name,
-                        monster.type,
-                        monster.description,
-                        monster.health,
-                        monster.attack,
-                        monster.special,
-                        monster.tags
-                    );
-                    if (card) {
-                        setEnemyDeck(prevDeck => [...prevDeck, card]);
-                    } else {
-                        console.warn(`Card not found: ${cardname}`);
-                    }
+            }
+            return newEnemies;
+        });
+    }, [enemies, hero, moveHero]);
+
+    // Spawn enemies randomly
+    const spawnEnemy = useCallback(() => {
+        if (enemies.length < 5) {
+            // Try up to 10 times to find a valid spawn location
+            for (let attempts = 0; attempts < 10; attempts++) {
+                const x = Math.floor(Math.random() * GRID_SIZE);
+                const y = Math.floor(Math.random() * GRID_SIZE);
+                // Check if position is occupied by hero or other enemies
+                const isOccupied = (x === hero.x && y === hero.y) ||
+                    enemies.some(enemy => enemy.x === x && enemy.y === y);
+
+                if (!isOccupied) {
+                    setEnemies(prev => [...prev, { x, y }]);
+                    break;
                 }
-            }
-        }();
-    }, []);
-
-    const showDeck = (side) => {
-        const deck = side === "player" ? playerDeck : enemyDeck;
-        const deckList = deck.map(card => `${card.name} (${card.type})`).join('\n');
-        alert(`Deck for ${side}:\n${deckList}`);
-    }
-
-    const handleStart = () => {
-        setTurnNumber(1);
-        // Initialize player and enemy active cards
-        const paq = playerDeck.slice(0, 3);
-        setPlayerDeck(prevDeck => prevDeck.slice(3)); // Remove the first 3 cards from the deck
-        setPlayerActiveCard(paq.slice(0)[0] || null);
-        // pull the top 3 cards from the deck for the queue
-        setPlayerActiveQueue(paq);
-
-        const eaq = enemyDeck.slice(0, 3);
-        setEnemyDeck(prevDeck => prevDeck.slice(3)); // Remove the first 3 cards from the deck
-        setEnemyActiveCard(eaq.slice(0)[0] || null);
-        setEnemyActiveQueue(eaq);
-
-    }
-
-
-    const handleNext = () => {
-        if (turnNumber === 0) return; // Prevent action if game hasn't started
-        setTurnNumber(prev => prev + 1);
-        if (playerActiveCard.type === "Monster" && enemyActiveCard.type === "Monster") {
-            playerActiveCard.takeDamage(enemyActiveCard.getEffectiveAttack());
-            enemyActiveCard.takeDamage(playerActiveCard.getEffectiveAttack());
-
-            // Check if player card is defeated
-            if (playerActiveCard.getEffectiveHealth() <= 0) {
-                setPlayerActiveCard(playerActiveQueue[1] || null);
-                // Remove the defeated card from the queue and add the next card from the deck to the queue
-                setPlayerActiveQueue(prevQueue => {
-                    const newQueue = [...prevQueue];
-                    newQueue.shift(); // Remove the first card (defeated card)
-                    if (playerDeck.length > 0) {
-                        newQueue.push(playerDeck.shift()); // Add next card from deck
-                    }
-                    return newQueue;
-                });
-                setPlayerDeck(prevDeck => prevDeck.slice(0)); // Remove the card from the deck
-
-
-            }
-            // Check if enemy card is defeated
-            if (enemyActiveCard.getEffectiveHealth() <= 0) {
-                setEnemyActiveCard(enemyActiveQueue[1] || null);
-                setEnemyActiveQueue(prevQueue => {
-                    const newQueue = [...prevQueue];
-                    newQueue.shift(); // Remove the first card (defeated card)
-                    if (enemyDeck.length > 0) {
-                        newQueue.push(enemyDeck.shift()); // Add next card from deck
-                    }
-                    return newQueue;
-                });
-                setEnemyDeck(prevDeck => prevDeck.slice(0)); // Remove the card from the deck
-
             }
         }
-    }
+    }, [enemies, hero, moveHero, moveEnemies]);
+
+    // Handle keyboard input
+    const handleKeyPress = useCallback((e) => {
+        switch (e.key) {
+            case 'ArrowUp':
+                moveHero('UP');
+                moveEnemies();
+                spawnEnemy();
+                break;
+            case 'ArrowRight':
+                moveHero('RIGHT');
+                moveEnemies();
+                spawnEnemy();
+                break;
+            case 'ArrowDown':
+                moveHero('DOWN');
+                moveEnemies();
+                spawnEnemy();
+                break;
+            case 'ArrowLeft':
+                moveHero('LEFT');
+                moveEnemies();
+                spawnEnemy();
+                break;
+            case ' ':
+                shoot();
+                break;
+            default:
+                break;
+        }
+    }, [moveHero, spawnEnemy, moveEnemies]); // Add moveHero as a dependency
+
+    // Initialize grid and set up event listeners
+    useEffect(() => {
+        const newGrid = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill('.'));
+        setGrid(newGrid);
+
+        window.addEventListener('keydown', handleKeyPress);
+        return () => window.removeEventListener('keydown', handleKeyPress);
+    }, [handleKeyPress]); // Add handleKeyPress as a dependency
+
+
+
+    // Handle shooting
+    const shoot = () => {
+        const dir = DIRECTIONS[hero.direction];
+        const startX = hero.x + dir.x;
+        const startY = hero.y + dir.y;
+        console.log(`Shooting from (${hero.x}, ${hero.y}) in direction ${hero.direction} to (${startX}, ${startY})`);
+        // Only shoot if the starting position is within the grid
+        if (startX >= 0 && startX < GRID_SIZE && startY >= 0 && startY < GRID_SIZE) {
+            setBullets(prev => [...prev, { x: startX, y: startY, dx: dir.x, dy: dir.y }]);
+        }
+    };
+
+    // Update bullets and check collisions
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setBullets(prev => {
+                const newBullets = prev.map(bullet => ({
+                    ...bullet,
+                    x: bullet.x + bullet.dx,
+                    y: bullet.y + bullet.dy
+                })).filter(bullet =>
+                    bullet.x >= 0 && bullet.x < GRID_SIZE &&
+                    bullet.y >= 0 && bullet.y < GRID_SIZE
+                );
+                return newBullets;
+            });
+
+            // Check for bullet-enemy collisions
+            bullets.forEach(bullet => {
+                enemies.forEach((enemy, index) => {
+                    if (bullet.x === enemy.x && bullet.y === enemy.y) {
+                        setEnemies(prev => prev.filter((_, i) => i !== index));
+                        setBullets(prev => prev.filter(b => b !== bullet));
+                        setScore(prev => prev + 100);
+                    }
+                });
+            });
+        }, 100);
+
+        return () => clearInterval(interval);
+    }, [bullets, enemies]);
+
+    // Game loop
+    // useEffect(() => {
+    //     const gameLoop = setInterval(() => {
+    //         spawnEnemy();
+    //         moveEnemies();
+    //     }, 1000);
+
+    //     return () => clearInterval(gameLoop);
+    // }, [spawnEnemy, moveEnemies]);
+
 
     return (
         <div className="game-container">
-            {turnNumber > 0 ? <>
-                <div className="playcolumn">
-                    <div className="active-container">
-                        {playerActiveCard ? (
-                            <Card card={playerActiveCard} />
-                        ) : (
-                            <div className="active-placeholder">Select a card</div>
-                        )}
-                    </div>
-                    <div className="deck-container">
-                        {playerActiveQueue.slice(1, 3).map((card, index) => (
-                            <Card key={index} card={card} />
-                        ))}
-                    </div>
-                    <button onClick={() => showDeck("player")}>Show Deck</button>
-                </div>
-                <div className="playcolumn top">
-                    <div className="turn-number">Turn: {turnNumber}</div>
-                    <button onClick={handleNext}>Next!</button>
-                    <div className="vs-text">VS</div>
-                </div>
+            <div className="game-info">
+                <h2>Score: {score}</h2>
+                <p>{enemies.length}</p>
+            </div>
+            <div className="game-grid">
+                {grid.map((row, y) => (
+                    <div key={y} className="grid-row">
+                        {row.map((_, x) => {
+                            const isHero = hero.x === x && hero.y === y;
+                            const isEnemy = enemies.some(e => e.x === x && e.y === y);
+                            const isBullet = bullets.some(b => Math.floor(b.x) === x && Math.floor(b.y) === y);
 
-                <div className="playcolumn">
-                    <div className="active-container">
-                        {enemyActiveCard ? (
-                            <Card card={enemyActiveCard} />
-                        ) : (
-                            <div className="active-placeholder">Select a card</div>
-                        )}
+                            return (
+                                <div key={`${x}-${y}`} className="grid-cell">
+                                    {isHero && <div className={`hero hero-${hero.direction.toLowerCase()}`} title={JSON.stringify(hero)}>H</div>}
+                                    {isEnemy && <div className="enemy">E</div>}
+                                    {isBullet && <div className="bullet">•</div>}
+                                </div>
+                            );
+                        })}
                     </div>
-                    <div className="deck-container">
-                        {enemyActiveQueue.slice(1, 3).map((card, index) => (
-                            <Card key={index} card={card} />
-                        ))}
-                    </div>
-                    <button onClick={() => showDeck("enemy")}>Show Deck</button>
-                </div>
-            </> : <button onClick={handleStart}>Start</button>}
+                ))}
+            </div>
         </div>
     );
-}
+};
+
