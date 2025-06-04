@@ -51,6 +51,13 @@ const PHASE_ORDER = Object.freeze([
     PHASES.ENEMY_ACTION
 ]);
 
+// Add a function to check if positions are adjacent
+const areAdjacent = (pos1, pos2) => {
+    const dx = Math.abs(pos1.x - pos2.x);
+    const dy = Math.abs(pos1.y - pos2.y);
+    return (dx <= 1 && dy <= 1) && !(dx === 0 && dy === 0);
+};
+
 export default function Game() {
     const [grid, setGrid] = useState([]);
     const [hero, setHero] = useState({ 
@@ -64,6 +71,8 @@ export default function Game() {
     const [score, setScore] = useState(0);
     const [bullets, setBullets] = useState([]);
     const [phase, setPhase] = useState(PHASES.HERO_MOVE);
+    const [isDamaged, setIsDamaged] = useState(false);
+    const [showDebug, setShowDebug] = useState(false);
 
     const nextPhase = useCallback(() => {
         setPhase(currentPhase => {
@@ -91,6 +100,17 @@ export default function Game() {
                 nextPhase();
                 break;
             case PHASES.ENEMY_ACTION:
+                // Check each enemy for adjacency to hero and deal damage
+                enemies.forEach(enemy => {
+                    if (areAdjacent(enemy, hero)) {
+                        setIsDamaged(true);
+                        setTimeout(() => setIsDamaged(false), 300); // Reset after animation
+                        setHero(prev => ({
+                            ...prev,
+                            currenthealth: Math.max(0, prev.currenthealth - 1)
+                        }));
+                    }
+                });
                 nextPhase();
                 break;
             default:
@@ -374,11 +394,9 @@ export default function Game() {
 
     return (
         <div className="game-container">
+            <h1>You are in a Hallway</h1>
             <div className="game-info">
                 <h2>Score: {score}</h2>
-                <p>{enemies.length}</p>
-                <p>Phase: {phase}</p>
-                <button onClick={shoot}>Shoot</button>
             </div>
             <div className="game-grid" data-phase={phase}>
                 <div className="hero-health">
@@ -418,7 +436,7 @@ export default function Game() {
                                 >
                                     {isHero && <HeroToken hero={hero} phase={phase} onMove={(direction) => {
                                         handleOnMove(direction);
-                                    }} />}
+                                    }} className={isDamaged ? 'hero-damaged' : ''} />}
                                     {isEnemy && <div className="enemy">E</div>}
                                     {isBullet && <div className="bullet">•</div>}
                                 </div>
@@ -426,6 +444,17 @@ export default function Game() {
                         })}
                     </div>
                 ))}
+            </div>
+
+            <button onClick={() => setShowDebug(!showDebug)}>Debug</button>
+            <div className="debug-info" style={{ display: showDebug ? 'block' : 'none' }}>
+                <p>Number of Enemies: {enemies.length}</p>
+                <p>Phase: {phase}</p>
+                <p>Hero Position: ({hero.x}, {hero.y})</p>
+                <p>Hero Direction: {hero.direction}</p>
+                <p>Hero Health: {hero.currenthealth}/{hero.maxhealth}</p>
+                <p>Active Bullets: {bullets.length}</p>
+                <p>Enemy Positions: {JSON.stringify(enemies.map(e => `(${e.x},${e.y})`))}</p>
             </div>
         </div>
     );

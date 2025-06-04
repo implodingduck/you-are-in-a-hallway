@@ -46,7 +46,7 @@
     position: relative;
 }
 
-/* Add clickable cursor during HERO_ACTION phase */
+/* Add clickable crosshair during HERO_ACTION phase */
 [data-phase="HERO_ACTION"] .grid-cell {
     cursor: crosshair;
 }
@@ -56,6 +56,7 @@
     transition: background-color 0.2s ease;
 }
 
+/* Add clickable cursor during HERO_MOVE phase */
 [data-phase="HERO_MOVE"] .grid-cell.highlighted {
     background-color: rgba(96, 252, 6, 0.2);
     transition: background-color 0.2s ease;
@@ -79,4 +80,29 @@
     height: 10px;
     background-color: #ffd700;
     border-radius: 50%;
+}
+
+@keyframes damage-flash {
+    0% { filter: none; }
+    25% { filter: brightness(200%) saturate(200%) contrast(150%); }
+    100% { filter: none; }
+}
+
+.hero-damaged {
+    animation: damage-flash 0.3s ease-out;
+}
+
+.debug-info {
+    margin-top: 20px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid #666;
+    border-radius: 4px;
+    color: #0f0;
+    font-family: monospace;
+}
+
+.debug-info p {
+    margin: 5px 0;
+    line-height: 1.4;
 }
