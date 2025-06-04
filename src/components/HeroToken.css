@@ -48,6 +48,10 @@
     align-items: center;
 }
 
+.heart {
+    display: inline-block;
+}
+
 .hero-controls {
     position: absolute;
     width: 100%;

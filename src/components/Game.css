@@ -12,6 +12,24 @@
 .game-grid {
     border: 2px solid #333;
     background-color: #f0f0f0;
+    position: relative;
+}
+
+.hero-health {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 4px;
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 5px;
+    border-radius: 4px;
+}
+
+.heart {
+    font-size: 16px;
+    line-height: 1;
 }
 
 .grid-row {
@@ -41,6 +59,7 @@
 [data-phase="HERO_MOVE"] .grid-cell.highlighted {
     background-color: rgba(96, 252, 6, 0.2);
     transition: background-color 0.2s ease;
+    cursor: pointer;
 }
 
 .enemy {

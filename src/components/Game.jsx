@@ -53,7 +53,13 @@ const PHASE_ORDER = Object.freeze([
 
 export default function Game() {
     const [grid, setGrid] = useState([]);
-    const [hero, setHero] = useState({ x: 5, y: 5, direction: 'RIGHT' });
+    const [hero, setHero] = useState({ 
+        x: 5, 
+        y: 5, 
+        direction: 'RIGHT',
+        maxhealth: 3,
+        currenthealth: 3
+    });
     const [enemies, setEnemies] = useState([]);
     const [score, setScore] = useState(0);
     const [bullets, setBullets] = useState([]);
@@ -101,10 +107,12 @@ export default function Game() {
 
     const handleOnAim = (direction) => {
         if (phase !== PHASES.HERO_ACTION) return; // Only aim during HERO_ACTION phase
-        setHero(prev => ({
-            ...prev,
-            direction: direction
-        }));
+        if (direction) {
+            setHero(prev => ({
+                ...prev,
+                direction: direction
+            }));
+        }
     };
 
     // Handle hero movement
@@ -112,6 +120,7 @@ export default function Game() {
         if (phase !== PHASES.HERO_MOVE) return; // Only move during HERO_MOVE phase
         setHero(prev => {
             const newPos = {
+                ...prev,
                 x: prev.x + DIRECTIONS[direction].x,
                 y: prev.y + DIRECTIONS[direction].y,
                 direction: prev.direction
@@ -135,73 +144,6 @@ export default function Game() {
         setEnemies(prev => {
             // Process enemies one at a time to avoid conflicts
             const newEnemies = [...prev];
-
-            // Not needed since all enemies move at once.
-            // Shuffle array to randomize which enemies move first
-            // for (let i = newEnemies.length - 1; i > 0; i--) {
-            //     const j = Math.floor(Math.random() * (i + 1));
-            //     [newEnemies[i], newEnemies[j]] = [newEnemies[j], newEnemies[i]];
-            // }
-
-
-
-            // return newEnemies.map(enemy => {
-            //     const dx = Math.sign(hero.x - enemy.x);
-            //     const dy = Math.sign(hero.y - enemy.y);
-
-            //     // Try to move in x or y direction randomly
-            //     const tryX = Math.random() < 0.5;
-            //     let newX = enemy.x;
-            //     let newY = enemy.y;
-
-            //     if (tryX && dx !== 0) {
-            //         newX = enemy.x + dx;
-            //     } else if (dy !== 0) {
-            //         newY = enemy.y + dy;
-            //     }
-
-            //     // Check if new position would collide with other enemies or hero
-            //     const wouldCollide = (newX === hero.x && newY === hero.y) ||
-            //         newEnemies.some(other => 
-            //             other !== enemy && 
-            //             other.x === newX && 
-            //             other.y === newY
-            //         );
-
-            //     // If would collide, try other direction
-            //     if (wouldCollide) {
-            //         newX = enemy.x;
-            //         newY = enemy.y;
-
-            //         if (!tryX && dx !== 0) {
-            //             newX = enemy.x + dx;
-            //         } else if (dy !== 0) {
-            //             newY = enemy.y + dy;
-            //         }
-
-            //         // Check again for collision
-            //         const secondaryCollision = (newX === hero.x && newY === hero.y) ||
-            //             newEnemies.some(other => 
-            //                 other !== enemy && 
-            //                 other.x === newX && 
-            //                 other.y === newY
-            //             );
-
-            //         // If still would collide, stay in place
-            //         if (secondaryCollision) {
-            //             newX = enemy.x;
-            //             newY = enemy.y;
-            //         }
-            //     }
-
-            //     return {
-            //         ...enemy,
-            //         x: newX,
-            //         y: newY
-            //     };
-            // });
-
-
             for (const enemy of newEnemies) {
                 const dx = Math.sign(hero.x - enemy.x);
                 const dy = Math.sign(hero.y - enemy.y);
@@ -399,17 +341,19 @@ export default function Game() {
         const cells = []
         if (phase === PHASES.HERO_ACTION) {
             const dir = DIRECTIONS[hero.direction];
-            let x = hero.x + dir.x;
-            let y = hero.y + dir.y;
+            if (dir) {
+                let x = hero.x + dir.x;
+                let y = hero.y + dir.y;
 
-            // Add cells in line of sight until we hit grid boundary
-            while (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE) {
-                cells.push({ x, y });
-                x += dir.x;
-                y += dir.y;
+                // Add cells in line of sight until we hit grid boundary
+                while (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE) {
+                    cells.push({ x, y });
+                    x += dir.x;
+                    y += dir.y;
+                }
             }
 
-            
+
         }
         if (phase === PHASES.HERO_MOVE) {
             // Highlight the hero's current position
@@ -422,7 +366,7 @@ export default function Game() {
                     cells.push({ x: adjX, y: adjY });
                 }
             }
-            
+
         }
         return cells;
 
@@ -437,6 +381,13 @@ export default function Game() {
                 <button onClick={shoot}>Shoot</button>
             </div>
             <div className="game-grid" data-phase={phase}>
+                <div className="hero-health">
+                    {Array(hero.maxhealth).fill().map((_, i) => (
+                        <span key={i} className={`heart ${i < hero.currenthealth ? 'filled' : 'empty'}`}>
+                            {i < hero.currenthealth ? '❤️' : '🖤'}
+                        </span>
+                    ))}
+                </div>
                 {grid.map((row, y) => (
                     <div key={y} className="grid-row">
                         {row.map((_, x) => {
@@ -452,8 +403,15 @@ export default function Game() {
                                     onClick={() => {
                                         if (phase === PHASES.HERO_ACTION) {
                                             const direction = getDirectionFromClick(hero.x, hero.y, x, y);
-                                            if (direction) {
+                                            if (direction !== hero.direction) {
                                                 handleOnAim(direction);
+                                            } else {
+                                                shoot(); // Shoot if clicked on the same direction
+                                            }
+                                        } else if (phase === PHASES.HERO_MOVE && isHighlighted) {
+                                            const direction = getDirectionFromClick(hero.x, hero.y, x, y);
+                                            if (direction) {
+                                                handleOnMove(direction);
                                             }
                                         }
                                     }}

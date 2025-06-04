@@ -2,6 +2,7 @@ import { useState } from 'react';
 import './HeroToken.css';
 
 const MAX_GRID_SIZE = 10; // Assuming a maximum grid size of 10x10
+const showcontrols = false;
 
 export default function HeroToken({ hero, phase, onMove }) {
     return (
@@ -9,7 +10,7 @@ export default function HeroToken({ hero, phase, onMove }) {
             <div className={`hero hero-${hero.direction.toLowerCase()}`} title={JSON.stringify(hero)}>
                 <span>H</span>
             </div>
-            {phase === 'HERO_MOVE' && (
+            {phase === 'HERO_MOVE' && showcontrols && (
                 <div className="hero-controls">
                     { hero.x > 0 && hero.y > 0 ? 
                     <button 
