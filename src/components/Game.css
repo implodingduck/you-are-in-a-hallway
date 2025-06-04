@@ -106,3 +106,45 @@
     margin: 5px 0;
     line-height: 1.4;
 }
+
+.game-over-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    z-index: 10;
+}
+
+.game-over-overlay h2 {
+    font-size: 3em;
+    margin-bottom: 20px;
+    color: #ff0000;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.game-over-overlay p {
+    font-size: 1.5em;
+    margin-bottom: 30px;
+}
+
+.game-over-overlay button {
+    padding: 15px 30px;
+    font-size: 1.2em;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.game-over-overlay button:hover {
+    background: #45a049;
+}

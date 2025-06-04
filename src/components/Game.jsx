@@ -73,6 +73,7 @@ export default function Game() {
     const [phase, setPhase] = useState(PHASES.HERO_MOVE);
     const [isDamaged, setIsDamaged] = useState(false);
     const [showDebug, setShowDebug] = useState(false);
+    const [isGameOver, setIsGameOver] = useState(false);
 
     const nextPhase = useCallback(() => {
         setPhase(currentPhase => {
@@ -121,12 +122,12 @@ export default function Game() {
     }, [phase])
 
     const handleOnMove = (direction) => {
-        if (phase !== PHASES.HERO_MOVE) return;
+        if (isGameOver || phase !== PHASES.HERO_MOVE) return;
         moveHero(direction);
     };
 
     const handleOnAim = (direction) => {
-        if (phase !== PHASES.HERO_ACTION) return; // Only aim during HERO_ACTION phase
+        if (isGameOver || phase !== PHASES.HERO_ACTION) return; // Only aim during HERO_ACTION phase
         if (direction) {
             setHero(prev => ({
                 ...prev,
@@ -303,7 +304,7 @@ export default function Game() {
 
     // Handle shooting
     const shoot = () => {
-        if (phase !== PHASES.HERO_ACTION) return; // Only shoot during HERO_ACTION phase
+        if (isGameOver || phase !== PHASES.HERO_ACTION) return; // Only shoot during HERO_ACTION phase
         const dir = DIRECTIONS[hero.direction];
         const startX = hero.x + dir.x;
         const startY = hero.y + dir.y;
@@ -392,6 +393,28 @@ export default function Game() {
 
     }, [phase, hero.direction, hero.x, hero.y]);
 
+    const resetGame = () => {
+        setHero({
+            x: 5,
+            y: 5,
+            direction: 'RIGHT',
+            maxhealth: 3,
+            currenthealth: 3
+        });
+        setEnemies([]);
+        setScore(0);
+        setBullets([]);
+        setPhase(PHASES.HERO_MOVE);
+        setIsGameOver(false);
+    };
+
+    // Check for game over when health changes
+    useEffect(() => {
+        if (hero.currenthealth <= 0) {
+            setIsGameOver(true);
+        }
+    }, [hero.currenthealth]);
+
     return (
         <div className="game-container">
             <h1>You are in a Hallway</h1>
@@ -399,6 +422,13 @@ export default function Game() {
                 <h2>Score: {score}</h2>
             </div>
             <div className="game-grid" data-phase={phase}>
+                {isGameOver && (
+                    <div className="game-over-overlay">
+                        <h2>Game Over</h2>
+                        <p>Final Score: {score}</p>
+                        <button onClick={resetGame}>Play Again</button>
+                    </div>
+                )}
                 <div className="hero-health">
                     {Array(hero.maxhealth).fill().map((_, i) => (
                         <span key={i} className={`heart ${i < hero.currenthealth ? 'filled' : 'empty'}`}>
