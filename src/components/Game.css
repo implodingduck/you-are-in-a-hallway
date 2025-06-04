@@ -2,7 +2,6 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
 }
 
 .game-info {
@@ -37,8 +36,8 @@
 }
 
 .grid-cell {
-    width: 50px;
-    height: 50px;
+    width: 2.4em;
+    height: 2.4em;
     border: 1px solid #ccc;
     display: flex;
     align-items: center;
@@ -64,8 +63,8 @@
 }
 
 .enemy {
-    width: 35px;
-    height: 35px;
+    width: 2.2em;
+    height: 2.2em;
     background-color: #f44336;
     border-radius: 50%;
     display: flex;

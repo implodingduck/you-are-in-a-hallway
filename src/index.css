@@ -56,6 +56,17 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+/* when screen width is less than or equal to 600px and fit the zoom to the screen */
+@media (max-width: 600px) {
+  body {
+    justify-content: start;
+    align-items: start;
+    display: inline-flex;
+    width: min-content;
+    
+  }
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
