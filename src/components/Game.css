@@ -28,7 +28,20 @@
     position: relative;
 }
 
+/* Add clickable cursor during HERO_ACTION phase */
+[data-phase="HERO_ACTION"] .grid-cell {
+    cursor: crosshair;
+}
 
+[data-phase="HERO_ACTION"] .grid-cell.highlighted {
+    background-color: rgba(0, 100, 255, 0.2);
+    transition: background-color 0.2s ease;
+}
+
+[data-phase="HERO_MOVE"] .grid-cell.highlighted {
+    background-color: rgba(96, 252, 6, 0.2);
+    transition: background-color 0.2s ease;
+}
 
 .enemy {
     width: 35px;

@@ -7,9 +7,30 @@ import { use } from 'react';
 const GRID_SIZE = 10;
 const DIRECTIONS = {
     UP: { x: 0, y: -1 },
+    UP_RIGHT: { x: 1, y: -1 },
     RIGHT: { x: 1, y: 0 },
+    DOWN_RIGHT: { x: 1, y: 1 },
     DOWN: { x: 0, y: 1 },
-    LEFT: { x: -1, y: 0 }
+    DOWN_LEFT: { x: -1, y: 1 },
+    LEFT: { x: -1, y: 0 },
+    UP_LEFT: { x: -1, y: -1 }
+};
+
+// Helper function to determine direction from click
+const getDirectionFromClick = (heroX, heroY, clickX, clickY) => {
+    const dx = Math.sign(clickX - heroX);
+    const dy = Math.sign(clickY - heroY);
+
+    // Map the dx/dy combinations to directions
+    if (dx === 0 && dy === -1) return 'UP';
+    if (dx === 1 && dy === -1) return 'UP_RIGHT';
+    if (dx === 1 && dy === 0) return 'RIGHT';
+    if (dx === 1 && dy === 1) return 'DOWN_RIGHT';
+    if (dx === 0 && dy === 1) return 'DOWN';
+    if (dx === -1 && dy === 1) return 'DOWN_LEFT';
+    if (dx === -1 && dy === 0) return 'LEFT';
+    if (dx === -1 && dy === -1) return 'UP_LEFT';
+    return null;
 };
 
 /** @enum {string} */
@@ -71,11 +92,11 @@ export default function Game() {
                 break;
 
         }
-    },[phase])
+    }, [phase])
 
     const handleOnMove = (direction) => {
         if (phase !== PHASES.HERO_MOVE) return;
-        moveHero(direction);    
+        moveHero(direction);
     };
 
     const handleOnAim = (direction) => {
@@ -257,22 +278,47 @@ export default function Game() {
 
     // Handle keyboard input
     const handleKeyPress = useCallback((e) => {
+        // Handle diagonal movements with numpad
         switch (e.key) {
             case 'ArrowUp':
+            case 'w':
+            case '8':
                 handleOnMove('UP');
                 handleOnAim('UP');
                 break;
+            case '9':
+                handleOnMove('UP_RIGHT');
+                handleOnAim('UP_RIGHT');
+                break;
             case 'ArrowRight':
+            case 'd':
+            case '6':
                 handleOnMove('RIGHT');
                 handleOnAim('RIGHT');
                 break;
+            case '3':
+                handleOnMove('DOWN_RIGHT');
+                handleOnAim('DOWN_RIGHT');
+                break;
             case 'ArrowDown':
+            case 's':
+            case '2':
                 handleOnMove('DOWN');
                 handleOnAim('DOWN');
                 break;
+            case '1':
+                handleOnMove('DOWN_LEFT');
+                handleOnAim('DOWN_LEFT');
+                break;
             case 'ArrowLeft':
+            case 'a':
+            case '4':
                 handleOnMove('LEFT');
                 handleOnAim('LEFT');
+                break;
+            case '7':
+                handleOnMove('UP_LEFT');
+                handleOnAim('UP_LEFT');
                 break;
             case ' ':
                 shoot();
@@ -304,13 +350,13 @@ export default function Game() {
         if (startX >= 0 && startX < GRID_SIZE && startY >= 0 && startY < GRID_SIZE) {
             setBullets(prev => [...prev, { x: startX, y: startY, dx: dir.x, dy: dir.y }]);
         }
-        
+
     };
 
     useEffect(() => {
         console.log(`Bullets: ${JSON.stringify(bullets)}`);
         // If there are no bullets left, move to the next phase
-        if (bullets.length === 0){
+        if (bullets.length === 0) {
             if (phase === PHASES.HERO_ACTION) {
                 nextPhase();
             }
@@ -348,16 +394,39 @@ export default function Game() {
         return () => clearInterval(interval);
     }, [bullets, enemies]);
 
-    // Game loop
-    // useEffect(() => {
-    //     const gameLoop = setInterval(() => {
-    //         spawnEnemy();
-    //         moveEnemies();
-    //     }, 1000);
+    // Calculate cells to highlight in hero's line of sight
+    const getHighlightedCells = useCallback(() => {
+        const cells = []
+        if (phase === PHASES.HERO_ACTION) {
+            const dir = DIRECTIONS[hero.direction];
+            let x = hero.x + dir.x;
+            let y = hero.y + dir.y;
 
-    //     return () => clearInterval(gameLoop);
-    // }, [spawnEnemy, moveEnemies]);
+            // Add cells in line of sight until we hit grid boundary
+            while (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE) {
+                cells.push({ x, y });
+                x += dir.x;
+                y += dir.y;
+            }
 
+            
+        }
+        if (phase === PHASES.HERO_MOVE) {
+            // Highlight the hero's current position
+            cells.push({ x: hero.x, y: hero.y });
+            // Highlight adjacent cells
+            for (const direction of Object.values(DIRECTIONS)) {
+                const adjX = hero.x + direction.x;
+                const adjY = hero.y + direction.y;
+                if (adjX >= 0 && adjX < GRID_SIZE && adjY >= 0 && adjY < GRID_SIZE) {
+                    cells.push({ x: adjX, y: adjY });
+                }
+            }
+            
+        }
+        return cells;
+
+    }, [phase, hero.direction, hero.x, hero.y]);
 
     return (
         <div className="game-container">
@@ -367,16 +436,28 @@ export default function Game() {
                 <p>Phase: {phase}</p>
                 <button onClick={shoot}>Shoot</button>
             </div>
-            <div className="game-grid">
+            <div className="game-grid" data-phase={phase}>
                 {grid.map((row, y) => (
                     <div key={y} className="grid-row">
                         {row.map((_, x) => {
                             const isHero = hero.x === x && hero.y === y;
                             const isEnemy = enemies.some(e => e.x === x && e.y === y);
                             const isBullet = bullets.some(b => Math.floor(b.x) === x && Math.floor(b.y) === y);
+                            const isHighlighted = getHighlightedCells().some(cell => cell.x === x && cell.y === y);
 
                             return (
-                                <div key={`${x}-${y}`} className="grid-cell">
+                                <div
+                                    key={`${x}-${y}`}
+                                    className={`grid-cell ${isHighlighted ? 'highlighted' : ''}`}
+                                    onClick={() => {
+                                        if (phase === PHASES.HERO_ACTION) {
+                                            const direction = getDirectionFromClick(hero.x, hero.y, x, y);
+                                            if (direction) {
+                                                handleOnAim(direction);
+                                            }
+                                        }
+                                    }}
+                                >
                                     {isHero && <HeroToken hero={hero} phase={phase} onMove={(direction) => {
                                         handleOnMove(direction);
                                     }} />}

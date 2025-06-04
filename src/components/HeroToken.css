@@ -55,10 +55,9 @@
 }
 
 .direction-btn {
-    color: #666;
     position: absolute;
-    width: 2.5em;
-    height: 2.5em;
+    width: 2em;
+    height: 2em;
     padding: 0;
     display: flex;
     justify-content: center;
@@ -69,33 +68,56 @@
     cursor: pointer;
     font-size: 16px;
     transition: background-color 0.2s;
+    color: #666;
     z-index: 100;
 }
 
 .direction-btn:hover {
-    background: rgb(122, 122, 122);
+    background: rgba(225, 225, 225, 1);
+    /* add a blue glow effect */
+    box-shadow: 0 0 8px rgba(0, 100, 255, 0.5);
 }
 
 .direction-btn.up {
-    top: -3em;
+    top: -2.5em;
     left: 50%;
     transform: translateX(-50%);
+}
+
+.direction-btn.up-right {
+    top: -2.5em;
+    right: -2.5em;
 }
 
 .direction-btn.right {
-    right: -3em;
+    right: -2.5em;
     top: 50%;
     transform: translateY(-50%);
 }
 
+.direction-btn.down-right {
+    bottom: -2.5em;
+    right: -2.5em;
+}
+
 .direction-btn.down {
-    bottom: -3em;
+    bottom: -2.5em;
     left: 50%;
     transform: translateX(-50%);
 }
 
+.direction-btn.down-left {
+    bottom: -2.5em;
+    left: -2.5em;
+}
+
 .direction-btn.left {
-    left: -3em;
+    left: -2.5em;
     top: 50%;
     transform: translateY(-50%);
+}
+
+.direction-btn.up-left {
+    top: -2.5em;
+    left: -2.5em;
 }
