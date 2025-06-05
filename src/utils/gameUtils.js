@@ -78,36 +78,54 @@ export const logicMoveEnemies = (newEnemies, hero) => {
     return newEnemies;
 }
 
+export const logicSpawnEnemies = (enemies, setEnemies, hero, gridSize) => {
+    if (enemies.length < 5) {
+            // Try up to 10 times to find a valid spawn location
+            for (let attempts = 0; attempts < 10; attempts++) {
+                const x = Math.floor(Math.random() * gridSize);
+                const y = Math.floor(Math.random() * gridSize);
+                // Check if position is occupied by hero or other enemies
+                const isOccupied = (x === hero.x && y === hero.y) ||
+                    enemies.some(enemy => enemy.x === x && enemy.y === y);
+
+                if (!isOccupied) {
+                    setEnemies(prev => [...prev, { x, y }]);
+                    break;
+                }
+            }
+        }
+}
+
 export const logicHighlightCells = (phase, hero, gridSize) => {
-        const cells = []
-        if (phase === PHASES.HERO_ACTION) {
-            const dir = DIRECTIONS[hero.direction];
-            if (dir) {
-                let x = hero.x + dir.x;
-                let y = hero.y + dir.y;
+    const cells = []
+    if (phase === PHASES.HERO_ACTION) {
+        const dir = DIRECTIONS[hero.direction];
+        if (dir) {
+            let x = hero.x + dir.x;
+            let y = hero.y + dir.y;
 
-                // Add cells in line of sight until we hit grid boundary
-                while (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
-                    cells.push({ x, y });
-                    x += dir.x;
-                    y += dir.y;
-                }
+            // Add cells in line of sight until we hit grid boundary
+            while (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
+                cells.push({ x, y });
+                x += dir.x;
+                y += dir.y;
             }
-
-
         }
-        if (phase === PHASES.HERO_MOVE) {
-            // Highlight the hero's current position
-            cells.push({ x: hero.x, y: hero.y });
-            // Highlight adjacent cells
-            for (const direction of Object.values(DIRECTIONS)) {
-                const adjX = hero.x + direction.x;
-                const adjY = hero.y + direction.y;
-                if (adjX >= 0 && adjX < gridSize && adjY >= 0 && adjY < gridSize) {
-                    cells.push({ x: adjX, y: adjY });
-                }
+
+
+    }
+    if (phase === PHASES.HERO_MOVE) {
+        // Highlight the hero's current position
+        cells.push({ x: hero.x, y: hero.y });
+        // Highlight adjacent cells
+        for (const direction of Object.values(DIRECTIONS)) {
+            const adjX = hero.x + direction.x;
+            const adjY = hero.y + direction.y;
+            if (adjX >= 0 && adjX < gridSize && adjY >= 0 && adjY < gridSize) {
+                cells.push({ x: adjX, y: adjY });
             }
-
         }
-        return cells;
+
+    }
+    return cells;
 }

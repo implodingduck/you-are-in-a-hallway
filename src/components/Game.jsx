@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import './Game.css';
 
 import GameGrid from './GameGrid.jsx';
 
 import { DIRECTIONS, PHASES, PHASE_ORDER } from '../models/Constants.js';
-import { getDirectionFromClick, areAdjacent, logicMoveEnemies, logicHighlightCells } from '../utils/gameUtils.js';
+import { areAdjacent, logicMoveEnemies, logicSpawnEnemies } from '../utils/gameUtils.js';
 
 const GRID_SIZE = 10;
 
@@ -61,7 +61,7 @@ export default function Game() {
                 nextPhase();
                 break;
             case PHASES.ENEMY_SPAWN:
-                //spawnEnemy();
+                spawnEnemy();
                 nextPhase();
                 break;
             
@@ -125,21 +125,7 @@ export default function Game() {
 
     // Spawn enemies randomly
     const spawnEnemy = useCallback(() => {
-        if (enemies.length < 5) {
-            // Try up to 10 times to find a valid spawn location
-            for (let attempts = 0; attempts < 10; attempts++) {
-                const x = Math.floor(Math.random() * GRID_SIZE);
-                const y = Math.floor(Math.random() * GRID_SIZE);
-                // Check if position is occupied by hero or other enemies
-                const isOccupied = (x === hero.x && y === hero.y) ||
-                    enemies.some(enemy => enemy.x === x && enemy.y === y);
-
-                if (!isOccupied) {
-                    setEnemies(prev => [...prev, { x, y }]);
-                    break;
-                }
-            }
-        }
+        logicSpawnEnemies(enemies, setEnemies, hero, GRID_SIZE);
     }, [enemies, hero, moveHero, moveEnemies]);
 
     // Handle keyboard input
@@ -337,11 +323,11 @@ export default function Game() {
                 enemies={enemies}
                 bullets={bullets}
                 phase={phase}
+                nextPhase={nextPhase}
                 handleOnMove={handleOnMove}
                 handleOnAim={handleOnAim}
                 shoot={shoot}
                 isDamaged={isDamaged}
-                nextPhase={nextPhase}
                 resetGame={resetGame}
                 isGameOver={isGameOver}
             />

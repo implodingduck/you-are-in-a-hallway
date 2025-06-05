@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import HeroToken from './HeroToken.jsx';
 import EnemyToken from './EnemyToken.jsx';
+import GameOver from './GameOver.jsx';
+import HeroHealth from './HeroHealth.jsx';
 import { getDirectionFromClick, logicHighlightCells } from '../utils/gameUtils.js';
 import { PHASES } from '../models/Constants.js';
 
-export default function GameGrid({ grid, gridSize, hero, enemies, phase, handleOnMove, handleOnAim, shoot, bullets, score, isDamaged, resetGame, isGameOver }) {
+export default function GameGrid({ grid, gridSize, hero, enemies, phase, nextPhase, handleOnMove, handleOnAim, shoot, bullets, score, isDamaged, resetGame, isGameOver }) {
 
     // Calculate cells to highlight in hero's line of sight
     const getHighlightedCells = useCallback(() => {
@@ -17,19 +19,11 @@ export default function GameGrid({ grid, gridSize, hero, enemies, phase, handleO
     return (
         <div className="game-grid" data-phase={phase}>
                 {isGameOver && (
-                    <div className="game-over-overlay">
-                        <h2>Game Over</h2>
-                        <p>Final Score: {score}</p>
-                        <button onClick={resetGame}>Play Again</button>
-                    </div>
+                    <GameOver
+                        resetGame={resetGame}
+                        score={score} />
                 )}
-                <div className="hero-health">
-                    {Array(hero.maxhealth).fill().map((_, i) => (
-                        <span key={i} className={`heart ${i < hero.currenthealth ? 'filled' : 'empty'}`}>
-                            {i < hero.currenthealth ? '❤️' : '🖤'}
-                        </span>
-                    ))}
-                </div>
+                <HeroHealth currentHealth={hero.currenthealth} maxHealth={hero.maxhealth} />
                 {grid.map((row, y) => (
                     <div key={y} className="grid-row">
                         {row.map((_, x) => {
