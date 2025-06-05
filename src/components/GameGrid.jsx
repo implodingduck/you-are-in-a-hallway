@@ -1,3 +1,5 @@
+import './GameGrid.css';
+
 import React, { useState, useEffect, useCallback } from 'react';
 import HeroToken from './HeroToken.jsx';
 import EnemyToken from './EnemyToken.jsx';
@@ -12,7 +14,7 @@ export default function GameGrid({ grid, gridSize, hero, enemies, phase, nextPha
     const getHighlightedCells = useCallback(() => {
         // add call to logicHighlightCells
         
-        return logicHighlightCells(phase, hero, gridSize)
+        return logicHighlightCells(phase, hero, grid, gridSize)
 
     }, [phase, hero.direction, hero.x, hero.y]);
 
@@ -32,10 +34,11 @@ export default function GameGrid({ grid, gridSize, hero, enemies, phase, nextPha
                             const isBullet = bullets.some(b => Math.floor(b.x) === x && Math.floor(b.y) === y);
                             const isHighlighted = getHighlightedCells().some(cell => cell.x === x && cell.y === y);
 
+                            const isWall = grid[y][x] === 'wall';
                             return (
                                 <div
                                     key={`${x}-${y}`}
-                                    className={`grid-cell ${isHighlighted ? 'highlighted' : ''}`}
+                                    className={`grid-cell ${isHighlighted ? 'highlighted' : ''} ${isWall ? 'wall' : ''}`}
                                     onClick={() => {
                                         if (phase === PHASES.HERO_ACTION) {
                                             const direction = getDirectionFromClick(hero.x, hero.y, x, y);

@@ -4,12 +4,12 @@ import './Game.css';
 import GameGrid from './GameGrid.jsx';
 
 import { DIRECTIONS, PHASES, PHASE_ORDER } from '../models/Constants.js';
-import { areAdjacent, logicMoveEnemies, logicSpawnEnemies } from '../utils/gameUtils.js';
+import { areAdjacent, logicMoveEnemies, logicSpawnEnemies, initializeGrid } from '../utils/gameUtils.js';
 
 const GRID_SIZE = 10;
 
 export default function Game() {
-    const [grid, setGrid] = useState([]);
+    const [grid, setGrid] = useState(initializeGrid(GRID_SIZE));
     const [hero, setHero] = useState({ 
         x: 5, 
         y: 5, 
@@ -100,17 +100,17 @@ export default function Game() {
                 direction: prev.direction
             };
 
-            // Check if position is within grid bounds and not occupied by an enemy
+            // Check if position is within grid bounds, not occupied by an enemy, and not a wall
             if (newPos.x >= 0 && newPos.x < GRID_SIZE &&
                 newPos.y >= 0 && newPos.y < GRID_SIZE &&
-                !enemies.some(enemy => enemy.x === newPos.x && enemy.y === newPos.y)) {
+                !enemies.some(enemy => enemy.x === newPos.x && enemy.y === newPos.y) &&
+                grid[newPos.y][newPos.x] !== 'wall') {
                 return newPos;
             }
-            //return { ...prev, direction }; // Only update direction if we can't move
             return { ...prev }
         });
         nextPhase();
-    }, [hero, enemies, phase]); // Add enemies as a dependency
+    }, [hero, enemies, phase, grid]); // Add enemies as a dependency
 
 
     // Move enemies towards hero
@@ -119,14 +119,14 @@ export default function Game() {
             // Process enemies one at a time to avoid conflicts
             const newEnemies = [...prev];
             
-            return logicMoveEnemies(newEnemies, hero);
+            return logicMoveEnemies(newEnemies, hero, grid);
         });
-    }, [enemies, hero, moveHero]);
+    }, [enemies, hero, grid, moveHero]);
 
     // Spawn enemies randomly
     const spawnEnemy = useCallback(() => {
-        logicSpawnEnemies(enemies, setEnemies, hero, GRID_SIZE);
-    }, [enemies, hero, moveHero, moveEnemies]);
+        logicSpawnEnemies(enemies, setEnemies, hero, GRID_SIZE, grid);
+    }, [enemies, hero, moveHero, moveEnemies, grid]);
 
     // Handle keyboard input
     const handleKeyPress = useCallback((e) => {
@@ -185,11 +185,9 @@ export default function Game() {
 
     // Initialize grid and set up event listeners
     useEffect(() => {
-        const newGrid = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill('.'));
-        setGrid(newGrid);
         spawnEnemy(); // Spawn initial enemies
         
-    }, []); // Add handleKeyPress as a dependency
+    }, [grid]); // Add handleKeyPress as a dependency
 
     useEffect(() => {
         window.addEventListener('keydown', handleKeyPress);
@@ -267,11 +265,22 @@ export default function Game() {
                         return null; // Remove this bullet
                     }
 
-                    // Update bullet position if no enemy was hit
+                    // Calculate new position
+                    const newX = bullet.x + bullet.dx;
+                    const newY = bullet.y + bullet.dy;
+
+                    // Check if new position hits a wall
+                    if (newX >= 0 && newX < GRID_SIZE && 
+                        newY >= 0 && newY < GRID_SIZE && 
+                        grid[Math.floor(newY)][Math.floor(newX)] === 'wall') {
+                        return null; // Remove bullet if it hits a wall
+                    }
+
+                    // Update bullet position if no wall was hit
                     return {
                         ...bullet,
-                        x: bullet.x + bullet.dx,
-                        y: bullet.y + bullet.dy
+                        x: newX,
+                        y: newY
                     };
                 }).filter(bullet => 
                     bullet !== null &&
@@ -341,6 +350,7 @@ export default function Game() {
                 <p>Hero Health: {hero.currenthealth}/{hero.maxhealth}</p>
                 <p>Active Bullets: {bullets.length}</p>
                 <p>Enemy Positions: {JSON.stringify(enemies.map(e => `(${e.x},${e.y})`))}</p>
+                <p>Grid: {JSON.stringify(grid)}</p>
             </div>
         </div>
     );

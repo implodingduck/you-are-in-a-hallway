@@ -24,7 +24,7 @@ export const areAdjacent = (pos1, pos2) => {
     return (dx <= 1 && dy <= 1) && !(dx === 0 && dy === 0);
 };
 
-export const logicMoveEnemies = (newEnemies, hero) => {
+export const logicMoveEnemies = (newEnemies, hero, grid) => {
     for (const enemy of newEnemies) {
         const dx = Math.sign(hero.x - enemy.x);
         const dy = Math.sign(hero.y - enemy.y);
@@ -45,7 +45,7 @@ export const logicMoveEnemies = (newEnemies, hero) => {
                 other !== enemy &&
                 other.x === newX &&
                 other.y === newY
-            );
+            ) || grid[newY][newX] === 'wall';
 
         // If would collide, try other direction
         if (wouldCollide) {
@@ -64,7 +64,7 @@ export const logicMoveEnemies = (newEnemies, hero) => {
                     other !== enemy &&
                     other.x === newX &&
                     other.y === newY
-                );
+                ) || grid[newY][newX] === 'wall';
 
             // If still would collide, stay in place
             if (secondaryCollision) {
@@ -78,15 +78,16 @@ export const logicMoveEnemies = (newEnemies, hero) => {
     return newEnemies;
 }
 
-export const logicSpawnEnemies = (enemies, setEnemies, hero, gridSize) => {
-    if (enemies.length < 5) {
+export const logicSpawnEnemies = (enemies, setEnemies, hero, gridSize, grid) => {
+    if (enemies.length < 5 && grid.length > 0 && grid[0].length > 0) {
             // Try up to 10 times to find a valid spawn location
             for (let attempts = 0; attempts < 10; attempts++) {
                 const x = Math.floor(Math.random() * gridSize);
                 const y = Math.floor(Math.random() * gridSize);
-                // Check if position is occupied by hero or other enemies
+                // Check if position is occupied by hero, other enemies, or a wall
                 const isOccupied = (x === hero.x && y === hero.y) ||
-                    enemies.some(enemy => enemy.x === x && enemy.y === y);
+                    enemies.some(enemy => enemy.x === x && enemy.y === y) ||
+                    grid[y][x] === 'wall';
 
                 if (!isOccupied) {
                     setEnemies(prev => [...prev, { x, y }]);
@@ -96,8 +97,14 @@ export const logicSpawnEnemies = (enemies, setEnemies, hero, gridSize) => {
         }
 }
 
-export const logicHighlightCells = (phase, hero, gridSize) => {
+export const logicHighlightCells = (phase, hero, grid, gridSize) => {
+
     const cells = []
+    // return cells if grid is empty
+    if (!grid || grid.length === 0 || grid[0].length === 0) {
+        return cells;
+    }
+
     if (phase === PHASES.HERO_ACTION) {
         const dir = DIRECTIONS[hero.direction];
         if (dir) {
@@ -105,7 +112,7 @@ export const logicHighlightCells = (phase, hero, gridSize) => {
             let y = hero.y + dir.y;
 
             // Add cells in line of sight until we hit grid boundary
-            while (x >= 0 && x < gridSize && y >= 0 && y < gridSize) {
+            while (x >= 0 && x < gridSize && y >= 0 && y < gridSize && grid[y][x] !== 'wall') {
                 cells.push({ x, y });
                 x += dir.x;
                 y += dir.y;
@@ -121,11 +128,29 @@ export const logicHighlightCells = (phase, hero, gridSize) => {
         for (const direction of Object.values(DIRECTIONS)) {
             const adjX = hero.x + direction.x;
             const adjY = hero.y + direction.y;
-            if (adjX >= 0 && adjX < gridSize && adjY >= 0 && adjY < gridSize) {
+            if (adjX >= 0 && adjX < gridSize && adjY >= 0 && adjY < gridSize && grid[adjY][adjX] !== 'wall') {
                 cells.push({ x: adjX, y: adjY });
             }
         }
 
     }
     return cells;
+}
+
+export const initializeGrid = (gridSize) => {
+    // randomly create a grid gridSize x gridSize filled with either empty cells or walls.
+    const grid = Array.from({ length: gridSize }, () => Array(gridSize).fill('empty'));
+    const wallProbability = 0.1; // 10% chance of a wall in each cell
+    for (let y = 0; y < gridSize; y++) {
+        for (let x = 0; x < gridSize; x++) {
+            if (Math.random() < wallProbability) {
+                grid[y][x] = 'wall';
+            } else {
+                grid[y][x] = 'empty';
+            }
+        }
+    }
+    // Make sure the hero's starting position (5,5) is empty
+    grid[5][5] = 'empty';
+    return grid;
 }

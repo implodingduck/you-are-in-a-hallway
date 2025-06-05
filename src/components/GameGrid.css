@@ -1,0 +1,4 @@
+.grid-cell.wall {
+    background: #2d2e2e;
+    cursor: not-allowed;
+}
