@@ -1,62 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './Game.css';
 
-import HeroToken from './HeroToken.jsx';
-import { use } from 'react';
+import GameGrid from './GameGrid.jsx';
+
+import { DIRECTIONS, PHASES, PHASE_ORDER } from '../models/Constants.js';
+import { getDirectionFromClick, areAdjacent, logicMoveEnemies, logicHighlightCells } from '../utils/gameUtils.js';
 
 const GRID_SIZE = 10;
-const DIRECTIONS = {
-    UP: { x: 0, y: -1 },
-    UP_RIGHT: { x: 1, y: -1 },
-    RIGHT: { x: 1, y: 0 },
-    DOWN_RIGHT: { x: 1, y: 1 },
-    DOWN: { x: 0, y: 1 },
-    DOWN_LEFT: { x: -1, y: 1 },
-    LEFT: { x: -1, y: 0 },
-    UP_LEFT: { x: -1, y: -1 }
-};
-
-// Helper function to determine direction from click
-const getDirectionFromClick = (heroX, heroY, clickX, clickY) => {
-    const dx = Math.sign(clickX - heroX);
-    const dy = Math.sign(clickY - heroY);
-
-    // Map the dx/dy combinations to directions
-    if (dx === 0 && dy === -1) return 'UP';
-    if (dx === 1 && dy === -1) return 'UP_RIGHT';
-    if (dx === 1 && dy === 0) return 'RIGHT';
-    if (dx === 1 && dy === 1) return 'DOWN_RIGHT';
-    if (dx === 0 && dy === 1) return 'DOWN';
-    if (dx === -1 && dy === 1) return 'DOWN_LEFT';
-    if (dx === -1 && dy === 0) return 'LEFT';
-    if (dx === -1 && dy === -1) return 'UP_LEFT';
-    return null;
-};
-
-/** @enum {string} */
-const PHASES = Object.freeze({
-    HERO_MOVE: 'HERO_MOVE',
-    HERO_ACTION: 'HERO_ACTION',
-    ENEMY_MOVE: 'ENEMY_MOVE',
-    ENEMY_SPAWN: 'ENEMY_SPAWN',
-    ENEMY_ACTION: 'ENEMY_ACTION'
-});
-
-// Array to define phase order
-const PHASE_ORDER = Object.freeze([
-    PHASES.HERO_MOVE,
-    PHASES.HERO_ACTION,
-    PHASES.ENEMY_MOVE,
-    PHASES.ENEMY_SPAWN,
-    PHASES.ENEMY_ACTION
-]);
-
-// Add a function to check if positions are adjacent
-const areAdjacent = (pos1, pos2) => {
-    const dx = Math.abs(pos1.x - pos2.x);
-    const dy = Math.abs(pos1.y - pos2.y);
-    return (dx <= 1 && dy <= 1) && !(dx === 0 && dy === 0);
-};
 
 export default function Game() {
     const [grid, setGrid] = useState([]);
@@ -92,14 +42,6 @@ export default function Game() {
             case PHASES.HERO_ACTION:
                 //shoot();
                 break;
-            case PHASES.ENEMY_MOVE:
-                moveEnemies();
-                nextPhase();
-                break;
-            case PHASES.ENEMY_SPAWN:
-                spawnEnemy();
-                nextPhase();
-                break;
             case PHASES.ENEMY_ACTION:
                 // Check each enemy for adjacency to hero and deal damage
                 enemies.forEach(enemy => {
@@ -114,6 +56,15 @@ export default function Game() {
                 });
                 nextPhase();
                 break;
+            case PHASES.ENEMY_MOVE:
+                moveEnemies();
+                nextPhase();
+                break;
+            case PHASES.ENEMY_SPAWN:
+                //spawnEnemy();
+                nextPhase();
+                break;
+            
             default:
                 console.warn(`Unknown phase: ${phase}`);
                 break;
@@ -121,11 +72,13 @@ export default function Game() {
         }
     }, [phase])
 
+    // Handler for hero movement
     const handleOnMove = (direction) => {
         if (isGameOver || phase !== PHASES.HERO_MOVE) return;
         moveHero(direction);
     };
 
+    // Handler for aiming direction
     const handleOnAim = (direction) => {
         if (isGameOver || phase !== PHASES.HERO_ACTION) return; // Only aim during HERO_ACTION phase
         if (direction) {
@@ -165,58 +118,8 @@ export default function Game() {
         setEnemies(prev => {
             // Process enemies one at a time to avoid conflicts
             const newEnemies = [...prev];
-            for (const enemy of newEnemies) {
-                const dx = Math.sign(hero.x - enemy.x);
-                const dy = Math.sign(hero.y - enemy.y);
-
-                // Try to move in x or y direction randomly
-                const tryX = Math.random() < 0.5;
-                let newX = enemy.x;
-                let newY = enemy.y;
-
-                if (tryX && dx !== 0) {
-                    newX = enemy.x + dx;
-                } else if (dy !== 0) {
-                    newY = enemy.y + dy;
-                }
-                // Check if new position would collide with other enemies or hero
-                const wouldCollide = (newX === hero.x && newY === hero.y) ||
-                    newEnemies.some(other =>
-                        other !== enemy &&
-                        other.x === newX &&
-                        other.y === newY
-                    );
-
-                // If would collide, try other direction
-                if (wouldCollide) {
-                    newX = enemy.x;
-                    newY = enemy.y;
-
-                    if (!tryX && dx !== 0) {
-                        newX = enemy.x + dx;
-                    } else if (dy !== 0) {
-                        newY = enemy.y + dy;
-                    }
-
-                    // Check again for collision
-                    const secondaryCollision = (newX === hero.x && newY === hero.y) ||
-                        newEnemies.some(other =>
-                            other !== enemy &&
-                            other.x === newX &&
-                            other.y === newY
-                        );
-
-                    // If still would collide, stay in place
-                    if (secondaryCollision) {
-                        newX = enemy.x;
-                        newY = enemy.y;
-                    }
-                }
-                enemy.x = newX;
-                enemy.y = newY;
-
-            }
-            return newEnemies;
+            
+            return logicMoveEnemies(newEnemies, hero);
         });
     }, [enemies, hero, moveHero]);
 
@@ -284,22 +187,28 @@ export default function Game() {
                 handleOnAim('UP_LEFT');
                 break;
             case ' ':
+                if (phase !== PHASES.HERO_ACTION) {
+                    nextPhase(); // Skip to next phase on space
+                }
                 shoot();
                 break;
             default:
                 break;
         }
-    }, [moveHero, phase]); // Add moveHero as a dependency
+    }, [moveHero, phase, hero]); // Add moveHero as a dependency
 
     // Initialize grid and set up event listeners
     useEffect(() => {
         const newGrid = Array(GRID_SIZE).fill().map(() => Array(GRID_SIZE).fill('.'));
         setGrid(newGrid);
+        spawnEnemy(); // Spawn initial enemies
+        
+    }, []); // Add handleKeyPress as a dependency
 
+    useEffect(() => {
         window.addEventListener('keydown', handleKeyPress);
         return () => window.removeEventListener('keydown', handleKeyPress);
-    }, [handleKeyPress]); // Add handleKeyPress as a dependency
-
+    }, [handleKeyPress]);
 
 
     // Handle shooting
@@ -326,72 +235,72 @@ export default function Game() {
         }
     }, [bullets]);
 
-    // Update bullets and check collisions
+    // Update bullets and check for closest enemy in line of fire
     useEffect(() => {
         const interval = setInterval(() => {
             if (phase !== PHASES.HERO_ACTION) return; // Only update bullets during HERO_ACTION phase
+            
             setBullets(prev => {
-                const newBullets = prev.map(bullet => ({
-                    ...bullet,
-                    x: bullet.x + bullet.dx,
-                    y: bullet.y + bullet.dy
-                })).filter(bullet =>
+                const newBullets = prev.map(bullet => {
+                    // Find enemies in the line of fire
+                    const enemiesInPath = enemies.filter(enemy => {
+                        // Check if enemy is in the same line as bullet trajectory
+                        const dx = enemy.x - bullet.x;
+                        const dy = enemy.y - bullet.y;
+                        // Enemy must be in direction of bullet's movement
+                        const inDirection = (Math.sign(dx) === Math.sign(bullet.dx) || dx === 0) &&
+                                         (Math.sign(dy) === Math.sign(bullet.dy) || dy === 0);
+                        
+                        if (!inDirection) return false;
+
+                        // For diagonal movement, check if enemy is on the same diagonal line
+                        if (bullet.dx !== 0 && bullet.dy !== 0) {
+                            return Math.abs(dx/bullet.dx - dy/bullet.dy) < 0.1; // Small threshold for floating point comparison
+                        }
+                        // For horizontal/vertical movement
+                        return bullet.dx === 0 ? dy/bullet.dy >= 0 : dx/bullet.dx >= 0;
+                    });
+
+                    // Find closest enemy in path
+                    if (enemiesInPath.length > 0) {
+                        const closestEnemy = enemiesInPath.reduce((closest, enemy) => {
+                            const distToCurrent = Math.sqrt(
+                                Math.pow(enemy.x - bullet.x, 2) + 
+                                Math.pow(enemy.y - bullet.y, 2)
+                            );
+                            const distToClosest = Math.sqrt(
+                                Math.pow(closest.x - bullet.x, 2) + 
+                                Math.pow(closest.y - bullet.y, 2)
+                            );
+                            return distToCurrent < distToClosest ? enemy : closest;
+                        });
+
+                        // Remove the closest enemy and this bullet
+                        setEnemies(prev => prev.filter(e => e !== closestEnemy));
+                        setScore(prev => prev + 100);
+                        return null; // Remove this bullet
+                    }
+
+                    // Update bullet position if no enemy was hit
+                    return {
+                        ...bullet,
+                        x: bullet.x + bullet.dx,
+                        y: bullet.y + bullet.dy
+                    };
+                }).filter(bullet => 
+                    bullet !== null &&
                     bullet.x >= 0 && bullet.x < GRID_SIZE &&
                     bullet.y >= 0 && bullet.y < GRID_SIZE
                 );
                 return newBullets;
-            });
-
-            // Check for bullet-enemy collisions
-            bullets.forEach(bullet => {
-                enemies.forEach((enemy, index) => {
-                    if (bullet.x === enemy.x && bullet.y === enemy.y) {
-                        setEnemies(prev => prev.filter((_, i) => i !== index));
-                        setBullets(prev => prev.filter(b => b !== bullet));
-                        setScore(prev => prev + 100);
-                    }
-                });
             });
         }, 100);
 
         return () => clearInterval(interval);
     }, [bullets, enemies]);
 
-    // Calculate cells to highlight in hero's line of sight
-    const getHighlightedCells = useCallback(() => {
-        const cells = []
-        if (phase === PHASES.HERO_ACTION) {
-            const dir = DIRECTIONS[hero.direction];
-            if (dir) {
-                let x = hero.x + dir.x;
-                let y = hero.y + dir.y;
-
-                // Add cells in line of sight until we hit grid boundary
-                while (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE) {
-                    cells.push({ x, y });
-                    x += dir.x;
-                    y += dir.y;
-                }
-            }
-
-
-        }
-        if (phase === PHASES.HERO_MOVE) {
-            // Highlight the hero's current position
-            cells.push({ x: hero.x, y: hero.y });
-            // Highlight adjacent cells
-            for (const direction of Object.values(DIRECTIONS)) {
-                const adjX = hero.x + direction.x;
-                const adjY = hero.y + direction.y;
-                if (adjX >= 0 && adjX < GRID_SIZE && adjY >= 0 && adjY < GRID_SIZE) {
-                    cells.push({ x: adjX, y: adjY });
-                }
-            }
-
-        }
-        return cells;
-
-    }, [phase, hero.direction, hero.x, hero.y]);
+    
+    
 
     const resetGame = () => {
         setHero({
@@ -421,60 +330,21 @@ export default function Game() {
             <div className="game-info">
                 <h2>Score: {score}</h2>
             </div>
-            <div className="game-grid" data-phase={phase}>
-                {isGameOver && (
-                    <div className="game-over-overlay">
-                        <h2>Game Over</h2>
-                        <p>Final Score: {score}</p>
-                        <button onClick={resetGame}>Play Again</button>
-                    </div>
-                )}
-                <div className="hero-health">
-                    {Array(hero.maxhealth).fill().map((_, i) => (
-                        <span key={i} className={`heart ${i < hero.currenthealth ? 'filled' : 'empty'}`}>
-                            {i < hero.currenthealth ? '❤️' : '🖤'}
-                        </span>
-                    ))}
-                </div>
-                {grid.map((row, y) => (
-                    <div key={y} className="grid-row">
-                        {row.map((_, x) => {
-                            const isHero = hero.x === x && hero.y === y;
-                            const isEnemy = enemies.some(e => e.x === x && e.y === y);
-                            const isBullet = bullets.some(b => Math.floor(b.x) === x && Math.floor(b.y) === y);
-                            const isHighlighted = getHighlightedCells().some(cell => cell.x === x && cell.y === y);
-
-                            return (
-                                <div
-                                    key={`${x}-${y}`}
-                                    className={`grid-cell ${isHighlighted ? 'highlighted' : ''}`}
-                                    onClick={() => {
-                                        if (phase === PHASES.HERO_ACTION) {
-                                            const direction = getDirectionFromClick(hero.x, hero.y, x, y);
-                                            if (direction !== hero.direction) {
-                                                handleOnAim(direction);
-                                            } else {
-                                                shoot(); // Shoot if clicked on the same direction
-                                            }
-                                        } else if (phase === PHASES.HERO_MOVE && isHighlighted) {
-                                            const direction = getDirectionFromClick(hero.x, hero.y, x, y);
-                                            if (direction) {
-                                                handleOnMove(direction);
-                                            }
-                                        }
-                                    }}
-                                >
-                                    {isHero && <HeroToken hero={hero} phase={phase} onMove={(direction) => {
-                                        handleOnMove(direction);
-                                    }} className={isDamaged ? 'hero-damaged' : ''} />}
-                                    {isEnemy && <div className="enemy">E</div>}
-                                    {isBullet && <div className="bullet">•</div>}
-                                </div>
-                            );
-                        })}
-                    </div>
-                ))}
-            </div>
+            <GameGrid
+                grid={grid}
+                gridSize={GRID_SIZE}
+                hero={hero}
+                enemies={enemies}
+                bullets={bullets}
+                phase={phase}
+                handleOnMove={handleOnMove}
+                handleOnAim={handleOnAim}
+                shoot={shoot}
+                isDamaged={isDamaged}
+                nextPhase={nextPhase}
+                resetGame={resetGame}
+                isGameOver={isGameOver}
+            />
 
             <button onClick={() => setShowDebug(!showDebug)}>Debug</button>
             <div className="debug-info" style={{ display: showDebug ? 'block' : 'none' }}>
