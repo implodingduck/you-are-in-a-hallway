@@ -3,7 +3,7 @@ import './Game.css';
 
 import GameGrid from './GameGrid.jsx';
 
-import { DIRECTIONS, PHASES, PHASE_ORDER } from '../models/Constants.js';
+import { DIRECTIONS, PHASES, PHASE_ORDER, TILES } from '../models/Constants.js';
 import { areAdjacent, logicMoveEnemies, logicSpawnEnemies, initializeGrid } from '../utils/gameUtils.js';
 
 const GRID_SIZE = 10;
@@ -104,7 +104,7 @@ export default function Game() {
             if (newPos.x >= 0 && newPos.x < GRID_SIZE &&
                 newPos.y >= 0 && newPos.y < GRID_SIZE &&
                 !enemies.some(enemy => enemy.x === newPos.x && enemy.y === newPos.y) &&
-                grid[newPos.y][newPos.x] !== 'wall') {
+                grid[newPos.y][newPos.x] !== TILES.WALL) {
                 return newPos;
             }
             return { ...prev }
@@ -237,12 +237,35 @@ export default function Game() {
                         
                         if (!inDirection) return false;
 
-                        // For diagonal movement, check if enemy is on the same diagonal line
+                        // Check alignment
+                        let isAligned = false;
                         if (bullet.dx !== 0 && bullet.dy !== 0) {
-                            return Math.abs(dx/bullet.dx - dy/bullet.dy) < 0.1; // Small threshold for floating point comparison
+                            // For diagonal movement, check if enemy is on the same diagonal line
+                            isAligned = Math.abs(dx/bullet.dx - dy/bullet.dy) < 0.1;
+                        } else {
+                            // For horizontal/vertical movement
+                            isAligned = bullet.dx === 0 ? dy/bullet.dy >= 0 : dx/bullet.dx >= 0;
                         }
-                        // For horizontal/vertical movement
-                        return bullet.dx === 0 ? dy/bullet.dy >= 0 : dx/bullet.dx >= 0;
+                        
+                        if (!isAligned) return false;
+
+                        // Check for walls between bullet and enemy
+                        const steps = Math.max(Math.abs(dx), Math.abs(dy));
+                        const stepX = dx / steps;
+                        const stepY = dy / steps;
+                        
+                        // Check each cell between bullet and enemy for walls
+                        for (let i = 1; i < steps; i++) {
+                            const checkX = Math.floor(bullet.x + stepX * i);
+                            const checkY = Math.floor(bullet.y + stepY * i);
+                            if (checkX >= 0 && checkX < GRID_SIZE && 
+                                checkY >= 0 && checkY < GRID_SIZE && 
+                                grid[checkY][checkX] === TILES.WALL) {
+                                return false; // Wall blocks the path
+                            }
+                        }
+                        
+                        return true;
                     });
 
                     // Find closest enemy in path
@@ -272,7 +295,7 @@ export default function Game() {
                     // Check if new position hits a wall
                     if (newX >= 0 && newX < GRID_SIZE && 
                         newY >= 0 && newY < GRID_SIZE && 
-                        grid[Math.floor(newY)][Math.floor(newX)] === 'wall') {
+                        grid[Math.floor(newY)][Math.floor(newX)] === TILES.WALL) {
                         return null; // Remove bullet if it hits a wall
                     }
 

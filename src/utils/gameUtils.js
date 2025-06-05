@@ -1,5 +1,5 @@
 // Helper function to determine direction from click
-import { DIRECTIONS, PHASES } from '../models/Constants.js';
+import { DIRECTIONS, PHASES, GRID_LAYOUTS, TILES } from '../models/Constants.js';
 
 export const getDirectionFromClick = (heroX, heroY, clickX, clickY) => {
     const dx = Math.sign(clickX - heroX);
@@ -45,7 +45,7 @@ export const logicMoveEnemies = (newEnemies, hero, grid) => {
                 other !== enemy &&
                 other.x === newX &&
                 other.y === newY
-            ) || grid[newY][newX] === 'wall';
+            ) || grid[newY][newX] === TILES.WALL;
 
         // If would collide, try other direction
         if (wouldCollide) {
@@ -64,7 +64,7 @@ export const logicMoveEnemies = (newEnemies, hero, grid) => {
                     other !== enemy &&
                     other.x === newX &&
                     other.y === newY
-                ) || grid[newY][newX] === 'wall';
+                ) || grid[newY][newX] === TILES.WALL;
 
             // If still would collide, stay in place
             if (secondaryCollision) {
@@ -87,7 +87,7 @@ export const logicSpawnEnemies = (enemies, setEnemies, hero, gridSize, grid) => 
                 // Check if position is occupied by hero, other enemies, or a wall
                 const isOccupied = (x === hero.x && y === hero.y) ||
                     enemies.some(enemy => enemy.x === x && enemy.y === y) ||
-                    grid[y][x] === 'wall';
+                    grid[y][x] === TILES.WALL;
 
                 if (!isOccupied) {
                     setEnemies(prev => [...prev, { x, y }]);
@@ -112,7 +112,7 @@ export const logicHighlightCells = (phase, hero, grid, gridSize) => {
             let y = hero.y + dir.y;
 
             // Add cells in line of sight until we hit grid boundary
-            while (x >= 0 && x < gridSize && y >= 0 && y < gridSize && grid[y][x] !== 'wall') {
+            while (x >= 0 && x < gridSize && y >= 0 && y < gridSize && grid[y][x] !== TILES.WALL) {
                 cells.push({ x, y });
                 x += dir.x;
                 y += dir.y;
@@ -128,7 +128,7 @@ export const logicHighlightCells = (phase, hero, grid, gridSize) => {
         for (const direction of Object.values(DIRECTIONS)) {
             const adjX = hero.x + direction.x;
             const adjY = hero.y + direction.y;
-            if (adjX >= 0 && adjX < gridSize && adjY >= 0 && adjY < gridSize && grid[adjY][adjX] !== 'wall') {
+            if (adjX >= 0 && adjX < gridSize && adjY >= 0 && adjY < gridSize && grid[adjY][adjX] !== TILES.WALL) {
                 cells.push({ x: adjX, y: adjY });
             }
         }
@@ -138,19 +138,26 @@ export const logicHighlightCells = (phase, hero, grid, gridSize) => {
 }
 
 export const initializeGrid = (gridSize) => {
-    // randomly create a grid gridSize x gridSize filled with either empty cells or walls.
-    const grid = Array.from({ length: gridSize }, () => Array(gridSize).fill('empty'));
-    const wallProbability = 0.1; // 10% chance of a wall in each cell
-    for (let y = 0; y < gridSize; y++) {
-        for (let x = 0; x < gridSize; x++) {
-            if (Math.random() < wallProbability) {
-                grid[y][x] = 'wall';
-            } else {
-                grid[y][x] = 'empty';
-            }
-        }
-    }
-    // Make sure the hero's starting position (5,5) is empty
-    grid[5][5] = 'empty';
+    // // randomly create a grid gridSize x gridSize filled with either empty cells or walls.
+    // const grid = Array.from({ length: gridSize }, () => Array(gridSize).fill('empty'));
+    // const wallProbability = 0.1; // 10% chance of a wall in each cell
+    // for (let y = 0; y < gridSize; y++) {
+    //     for (let x = 0; x < gridSize; x++) {
+    //         if (Math.random() < wallProbability) {
+    //             grid[y][x] = 'wall';
+    //         } else {
+    //             grid[y][x] = 'empty';
+    //         }
+    //     }
+    // }
+    // // Make sure the hero's starting position (5,5) is empty
+    // grid[5][5] = 'empty';
+    // return grid;
+
+    // RANDOMLY SELECT A GRID LAYOUT
+    const layouts = Object.values(GRID_LAYOUTS);
+    const randomIndex = Math.floor(Math.random() * layouts.length);
+    const grid = layouts[randomIndex].map(row => [...row]); // Create a copy of the selected layout
     return grid;
+    
 }

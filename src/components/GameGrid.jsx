@@ -6,7 +6,7 @@ import EnemyToken from './EnemyToken.jsx';
 import GameOver from './GameOver.jsx';
 import HeroHealth from './HeroHealth.jsx';
 import { getDirectionFromClick, logicHighlightCells } from '../utils/gameUtils.js';
-import { PHASES } from '../models/Constants.js';
+import { PHASES, TILES } from '../models/Constants.js';
 
 export default function GameGrid({ grid, gridSize, hero, enemies, phase, nextPhase, handleOnMove, handleOnAim, shoot, bullets, score, isDamaged, resetGame, isGameOver }) {
 
@@ -34,7 +34,7 @@ export default function GameGrid({ grid, gridSize, hero, enemies, phase, nextPha
                             const isBullet = bullets.some(b => Math.floor(b.x) === x && Math.floor(b.y) === y);
                             const isHighlighted = getHighlightedCells().some(cell => cell.x === x && cell.y === y);
 
-                            const isWall = grid[y][x] === 'wall';
+                            const isWall = grid[y][x] === TILES.WALL;
                             return (
                                 <div
                                     key={`${x}-${y}`}
